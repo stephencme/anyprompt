@@ -7,8 +7,8 @@ import { LoginTemplate } from "@anyprompt/core";
 import { Database } from "@/database.types"
 
 const supabase = createClient<Database>(
-  process.env.SUPABASE_URL ?? "https://qcuruxudpkctlyrvagyy.supabase.co",
-  process.env.SUPABASE_ANON_KEY ?? "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFjdXJ1eHVkcGtjdGx5cnZhZ3l5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Mzg5MDQzNTcsImV4cCI6MjA1NDQ4MDM1N30.igQTnslj7wYbdy6BD8z3YZipLATdvQh1URO3-ewq1EI"
+  process.env.SUPABASE_URL ?? "",
+  process.env.SUPABASE_ANON_KEY ?? ""
 )
 
 interface LoginPageClientProps {
