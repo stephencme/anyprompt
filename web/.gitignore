@@ -41,4 +41,4 @@ yarn-error.log*
 next-env.d.ts
 
 # project url and api keys
-# api_key.env.local
+api_key.env.local
