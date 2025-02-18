@@ -36,6 +36,9 @@ cd anyprompt
 ### Step 2: Install dependencies
   
 ```bash
+# Make sure you are in project Root /anyprompt
+cd anyprompt
+
 npm install
 ```
 
@@ -67,7 +70,7 @@ Open [http://localhost:3000](http://localhost:3000) with your browser to see the
 import { PromptTemplate, promptNameAndVersion } from "@anyprompt/core"
 ```
 
-If trying to use the `core` functions similar to the above and is giving an error of `Cannot find module '@anyprompt/core' or its corresponding type declarations.` in VSCode, please do the following:
+If trying to use the `core` functions similar to the above and is giving an error of `Cannot find module '@anyprompt/core' or its corresponding type declarations.` in VSCode, then there might have been an issue where npm was unable to symlink the core (not very likely but can happen). To manually ensure that the symlink is correctly established, please do the following:
 
 ``` bash
 cd anyprompt/core
@@ -79,14 +82,14 @@ This should fix the problem and VSCode should no longer display an error.
 
 ### Issue 2: Supabase URL not found
 
-The project currently does not have a centralized Supabase project setup, so when accessing [http://localhost:3000/prompts](http://localhost:3000/prompts) the following error can be seen:
+The project does not include a centralized Supabase project for individual usage, so when accessing [http://localhost:3000/prompts](http://localhost:3000/prompts) the following error can be seen:
 
 ```Bash
 Server Error
     Error: supabaseUrl is required.
 ```
 
-To resolve the issue please visit [database.new](https://database.new/) to create a new Supabase project. Once a project is created please create a file named `.env.local` under the `anyprompt/web` folder. Then add the `SUPABASE_URL` and `SUPABASE_ANON_KEY` of the newly created Supabase project to the `.env.local` file.
+To resolve the issue please visit [database.new](https://database.new/) and follow the instructuions to create a new self-hosted Supabase project. Once a project is created please create a file named `.env.local` under the `anyprompt/web` folder. Then add the `SUPABASE_URL` and `SUPABASE_ANON_KEY` of the newly created Supabase project to the `.env.local` file.
 
 Example of `.env.local` content:
 
@@ -96,5 +99,3 @@ SUPABASE_ANON_KEY=eyJhbGXVCJ9.eyJpcIA1NDQ4MDM1N30.igQTnwq1EI
 ```
 
 The issue should then be solved.
-
-**Note:** We will be creating a centralized Supabase Project so in the future we would have the Supabase URL and Anon key filled into the `.env.local` file.
