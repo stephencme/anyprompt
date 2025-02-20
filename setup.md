@@ -36,9 +36,7 @@ cd anyprompt
 ### Step 2: Install dependencies
   
 ```bash
-# Make sure you are in project Root /anyprompt
-cd anyprompt
-
+# Make sure you are in the /anyprompt project root
 npm install
 ```
 
@@ -60,7 +58,7 @@ bun dev
 
 Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
 
-**IMPORTANT NOTE:** Currently the only page that is creataed is `prompts` so direcly accessing [http://localhost:3000](http://localhost:3000) will cause a $404$ error. For successful access please open [http://localhost:3000/prompts](http://localhost:3000/prompts) instead.
+**IMPORTANT NOTE:** Currently the only page that is created is `prompts` so direcly accessing [http://localhost:3000](http://localhost:3000) will cause a $404$ error. For successful access please open [http://localhost:3000/prompts](http://localhost:3000/prompts) instead.
 
 ## Troubleshooting
 
@@ -89,7 +87,7 @@ Server Error
     Error: supabaseUrl is required.
 ```
 
-To resolve the issue please visit [database.new](https://database.new/) and follow the instructuions to create a new self-hosted Supabase project. Once a project is created please create a file named `.env.local` under the `anyprompt/web` folder. Then add the `SUPABASE_URL` and `SUPABASE_ANON_KEY` of the newly created Supabase project to the `.env.local` file.
+To resolve the issue please visit [database.new](https://database.new/) and follow the instructions to create a new self-hosted Supabase project. Once a project is created please create a file named `.env.local` under the `anyprompt/web` folder. Then add the `SUPABASE_URL` and `SUPABASE_ANON_KEY` of the newly created Supabase project to the `.env.local` file.
 
 Example of `.env.local` content:
 
