@@ -22,6 +22,11 @@ export class AnyPromptCore {
    * @param template The template string.
    */
   setPrompt(key: string, template: string): void {
+    // Check if template is valid
+    if (!validateTemplate(template)) {
+      throw new Error(`Invalid template format for key "${key}".`);
+    }
+
     if (this.prompts[key]) {
       console.warn(`Prompt with key "${key}" exists and will be overwritten.`)
     }
@@ -36,6 +41,10 @@ export class AnyPromptCore {
    */
   setPrompts(prompts: Prompts): void {
     Object.entries(prompts).forEach(([key, { template }]) => {
+      // Check if template is valid
+      if (!validateTemplate(template)) {
+        throw new Error(`Invalid template format for key "${key}".`);
+      }
       this.setPrompt(key, template)
     })
   }
@@ -96,4 +105,29 @@ export function promptNameAndVersion(
     )
   }
   return [name, version]
+}
+
+export function validateTemplate(
+  template: string
+): boolean {
+  // Regex to capture all placeholders in the form {{ ... }}
+  let regex = /{{\s*([^}]+?)\s*}}/g;
+  let match;
+
+  // Iterate over all placeholders
+  while ((match = regex.exec(template)) !== null) {
+    const variableName = match[1].trim();
+    // Check if valid js identifier
+    if (!/^[A-Za-z_$][A-Za-z0-9_$]*$/.test(variableName)) {
+      return false;
+    }
+  }
+
+  // Ensure there are no stray '{{' or '}}'
+  const stripped = template.replace(regex, '');
+  if (stripped.includes('{{') || stripped.includes('}}')) {
+    return false;
+  }
+
+  return true;
 }
