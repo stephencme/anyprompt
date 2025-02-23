@@ -38,11 +38,11 @@ import {
       };
       core.setPrompts(prompts);
   
-      const promo = core.getPrompt('test1@v1');
-      expect(promo.template).toBe('Testing {{ item }} now!');
+      const testPrompt1 = core.getPrompt('test1@v1');
+      expect(testPrompt1.template).toBe('Testing {{ item }} now!');
   
-      const offer = core.getPrompt('test2@v1');
-      expect(offer.template).toBe('Username is{{user_name  }}');
+      const testPrompt2 = core.getPrompt('test2@v1');
+      expect(testPrompt2.template).toBe('Username is{{user_name  }}');
     });
   
     it('should throw an error in setPrompts if one of the templates is invalid', () => {
