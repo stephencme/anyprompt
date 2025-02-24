@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { createClient } from "@supabase/supabase-js";
 import { LoginTemplate } from "@anyprompt/core";
-
+import { useRouter } from "next/navigation";
 import { Database } from "@/database.types"
 
 const supabase = createClient<Database>(
@@ -20,6 +20,8 @@ export default function LoginPageClient(props: LoginPageClientProps) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
+
+  const router = useRouter(); //for page redirection
 
   useEffect(() => {
     const getUser = async () => {
@@ -45,38 +47,12 @@ export default function LoginPageClient(props: LoginPageClientProps) {
   };
 
   const handleSignUp = async () => {
-    setError(null);
-  
-    // Sign up the user with Supabase Authentication
-    const { data, error } = await supabase.auth.signUp({
-      email,
-      password,
-    });
-  
-    if (error) {
-      setError(error.message);
-      return;
-    }
-  
-    if (data?.user) {
-      // Insert the user profile into your custom table `Users`
-      const { error: insertError } = await supabase
-        .from("Users")
-        .insert([
-          {
-            id: data.user.id, // Use the user ID from Supabase Authentication
-            email: data.user.email || "", // Ensure email is a string
-            name: data.user.user_metadata?.name || "Default Name", // Use name from user_metadata, default to "Default Name"
-          },
-        ]);
-  
-      if (insertError) {
-        setError(insertError.message);
-      } else {
-        setUser(data.user); // Successfully inserted profile
-        console.log("New user signed up and profile added:", data.user);
-      }
-    }
+    //does nothing for now, but once the signup page is done, handleSignUp() will redirect
+    //to /signup
+
+
+    //uncomment once signup page is done and merged into the branch "feature/login"
+    // router.push("/signup"); // Redirect to signup after confirmation
   };
   
 
