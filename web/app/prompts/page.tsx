@@ -17,7 +17,8 @@ export default async function PromptsPage() {
   const { data } = await selectPrompts()
   const prompts: PromptTemplate[] =
     data?.map((prompt) => {
-      const [name, version] = promptNameAndVersion(prompt.id)
+      // const [name, version] = promptNameAndVersion(prompt.id)
+      const [name, version] = ["test", "test"]
       return {
         id: prompt.id,
         name,
