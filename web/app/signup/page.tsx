@@ -1,20 +1,15 @@
-import SignupPageClient from "./page.client";
+import { createClient } from "@supabase/supabase-js"
+import { SignupTemplate } from "@anyprompt/core"
 
-export default function SignupPage() {
-  const supabaseConfig = {
-    url: process.env.SUPABASE_URL ?? "",
-    anonKey: process.env.SUPABASE_ANON_KEY ?? "",
-  };
+import { Database } from "@/database.types"
+import SignupPageClient from "./page.client"
 
-  const signupTemplate = {
-    title: "Create an Account",
-    description: "Fill in the form below to sign up and get started.",
-  };
+const supabase = createClient<Database>(
+  process.env.SUPABASE_URL ?? "",
+  process.env.SUPABASE_ANON_KEY ?? ""
+)
 
-  return (
-    <main style={{ padding: "2rem", fontFamily: "Arial, sans-serif" }}>
-      <h1>{signupTemplate.title}</h1>
-      <SignupPageClient supabaseConfig={supabaseConfig} signupTemplate={signupTemplate} />
-    </main>
-  );
+export default async function SignupPage() {
+
+  return <SignupPageClient/>
 }
