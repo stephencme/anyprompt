@@ -52,6 +52,21 @@ export type Database = {
         }
         Relationships: []
       }
+      Users: {
+        Row: {
+          id: number
+          email: string
+          name: string
+        }
+        Insert: {
+          id: string
+          email: string
+          name: string
+        }
+        Update: {
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
