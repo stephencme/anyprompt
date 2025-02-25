@@ -24,7 +24,7 @@ export class AnyPromptCore {
   setPrompt(key: string, template: string): void {
     // Check if template is valid
     if (!validateTemplate(template)) {
-      throw new Error(`Invalid template format for key "${key}".`);
+      throw new Error(`Invalid template format for key "${key}".`)
     }
 
     if (this.prompts[key]) {
@@ -41,7 +41,7 @@ export class AnyPromptCore {
    */
   setPrompts(prompts: Prompts): void {
     Object.entries(prompts).forEach(([key, { template }]) => {
-      this.setPrompt(key, template) 
+      this.setPrompt(key, template)
     })
   }
 
@@ -103,10 +103,8 @@ export function promptNameAndVersion(
   return [name, version]
 }
 
-export function validateTemplate(
-  template: string
-): boolean {
-  let match;
+export function validateTemplate(template: string): boolean {
+  let match
 
   // Regex for prompt template validation
   const bracesRegex = /{{\s*([^}]+?)\s*}}/g
@@ -114,18 +112,18 @@ export function validateTemplate(
 
   // Iterate over all placeholders
   while ((match = bracesRegex.exec(template)) !== null) {
-    const variableName = match[1].trim();
+    const variableName = match[1].trim()
     // Check if valid js identifier
     if (!variableRegex.test(variableName)) {
-      return false;
+      return false
     }
   }
 
   // Ensure there are no stray '{{' or '}}'
-  const stripped = template.replace(bracesRegex, '');
-  if (stripped.includes('{{') || stripped.includes('}}')) {
-    return false;
+  const stripped = template.replace(bracesRegex, "")
+  if (stripped.includes("{{") || stripped.includes("}}")) {
+    return false
   }
 
-  return true;
+  return true
 }
