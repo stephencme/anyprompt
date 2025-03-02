@@ -10,6 +10,7 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import { Play } from "lucide-react"
+import Link from "next/link"
 
 type PromptCardProps = {
   prompt: {
@@ -67,9 +68,12 @@ const PromptCard = ({ prompt }: PromptCardProps) => {
           <Play className="w-4 h-4 text-white" fill="white" />
           <p className={`${DMMono.className} font-bold`}>Run</p>
         </button>
-        <button className="flex items-center font-bold gap-2 border px-4 py-2 hover:bg-[#F5F5F5] transition-all duration-300">
+        <Link
+          href={`/prompts/${prompt.id}`}
+          className="flex items-center font-bold gap-2 border px-4 py-2 hover:bg-[#F5F5F5] transition-all duration-300"
+        >
           Edit
-        </button>
+        </Link>
       </div>
     </div>
   )

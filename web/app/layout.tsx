@@ -4,6 +4,7 @@ import "./globals.css"
 import Header from "@/components/Header"
 import Sidebar from "@/components/Sidebar"
 import { dmMono, merriweather } from "./fonts"
+import { Toaster } from "sonner"
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -37,6 +38,7 @@ export default function RootLayout({
             <main className="flex-1">{children}</main>
           </div>
         </div>
+        <Toaster position="top-right" />
       </body>
     </html>
   )
