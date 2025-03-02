@@ -50,23 +50,23 @@ export type Database = {
       prompts: {
         Row: {
           created_at: string
+          description: string | null
           id: string
           name: string
-          template: string
           updated_at: string | null
         }
         Insert: {
           created_at?: string
+          description?: string | null
           id?: string
           name: string
-          template: string
           updated_at?: string | null
         }
         Update: {
           created_at?: string
+          description?: string | null
           id?: string
           name?: string
-          template?: string
           updated_at?: string | null
         }
         Relationships: []

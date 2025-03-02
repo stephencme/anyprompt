@@ -1,31 +1,18 @@
-import { createClient } from "@supabase/supabase-js"
-import { PromptTemplate, promptNameAndVersion } from "@anyprompt/core"
-
-import { Database } from "@/database.types"
 import PromptsPageClient from "./page.client"
 
-const supabase = createClient<Database>(
-  process.env.SUPABASE_URL ?? "",
-  process.env.SUPABASE_ANON_KEY ?? ""
-)
+async function getPromptsWithVersions() {
+  const res = await fetch(`http://localhost:3000/api/prompts`, {
+    cache: "no-store",
+  })
 
-async function selectPrompts() {
-  return supabase.from("prompts").select("*")
+  if (!res.ok) {
+    throw new Error("Failed to fetch prompts")
+  }
+
+  return res.json()
 }
 
 export default async function PromptsPage() {
-  const { data } = await selectPrompts()
-  const prompts: PromptTemplate[] =
-    data?.map((prompt) => {
-      // const [name, version] = promptNameAndVersion(prompt.id)
-      const [name, version] = ["test", "test"]
-      return {
-        id: prompt.id,
-        name,
-        version,
-        template: prompt.template,
-      }
-    }) ?? []
-
-  return <PromptsPageClient prompts={prompts} />
+  const prompts = await getPromptsWithVersions()
+  return <PromptsPageClient prompts={prompts ?? []} />
 }

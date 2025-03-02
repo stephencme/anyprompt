@@ -1,12 +1,21 @@
 "use client"
 
 import { Merriweather } from "next/font/google"
-import { PromptTemplate } from "@anyprompt/core"
 import PromptCard from "@/components/PromptCard"
 import { Plus } from "lucide-react"
 import Link from "next/link"
+
+type PromptWithVersions = {
+  id: string
+  name: string
+  description: string
+  created_at: string
+  updated_at: string
+  versions: string[]
+}
+
 interface PromptsPageClientProps {
-  prompts: PromptTemplate[]
+  prompts: PromptWithVersions[]
 }
 
 const merriweather = Merriweather({
