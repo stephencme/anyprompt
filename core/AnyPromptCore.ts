@@ -22,6 +22,11 @@ export class AnyPromptCore {
    * @param template The template string.
    */
   setPrompt(key: string, template: string): void {
+    // Check if template is valid
+    if (!validateTemplate(template)) {
+      throw new Error(`Invalid template format for key "${key}".`)
+    }
+
     if (this.prompts[key]) {
       console.warn(`Prompt with key "${key}" exists and will be overwritten.`)
     }
@@ -96,4 +101,29 @@ export function promptNameAndVersion(
     )
   }
   return [name, version]
+}
+
+export function validateTemplate(template: string): boolean {
+  let match
+
+  // Regex for prompt template validation
+  const bracesRegex = /{{\s*([^}]+?)\s*}}/g
+  const variableRegex = /^[A-Za-z_$][A-Za-z0-9_$]*$/
+
+  // Iterate over all placeholders
+  while ((match = bracesRegex.exec(template)) !== null) {
+    const variableName = match[1].trim()
+    // Check if valid js identifier
+    if (!variableRegex.test(variableName)) {
+      return false
+    }
+  }
+
+  // Ensure there are no stray '{{' or '}}'
+  const stripped = template.replace(bracesRegex, "")
+  if (stripped.includes("{{") || stripped.includes("}}")) {
+    return false
+  }
+
+  return true
 }
