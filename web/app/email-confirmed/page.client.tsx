@@ -34,7 +34,7 @@ const ConfirmEmail = () => {
       })
         .then(() => {
           // Handle the successful authentication
-          router.push('/prompt'); // Redirect to prompt
+          router.push('/prompts'); // Redirect to prompt
         })
         // unsuccessful authentication
         .catch((error) => {

@@ -44,8 +44,8 @@ export default function LoginPageClient(props: LoginPageClientProps) {
       return;
     }
 
-    //after login, redirect user to the prompt page
-    router.push("/prompt")
+    //after login, redirect user to the prompts page
+    router.push("/prompts")
   };
 
   const handleSignUp = async () => {
