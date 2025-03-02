@@ -11,11 +11,13 @@ const NewPromptClient = () => {
   const [promptName, setPromptName] = useState<string>("Untitled")
   const [version, setVersion] = useState<string>("0.0.1")
   const [template, setTemplate] = useState<string>("")
+  const [description, setDescription] = useState<string>("")
   const [isLoading, setIsLoading] = useState<boolean>(false)
   const [errors, setErrors] = useState<{
     name?: string
     version?: string
     template?: string
+    description?: string
     general?: string
   }>({})
 
@@ -38,6 +40,10 @@ const NewPromptClient = () => {
 
     if (!version || !version.match(/^\d+\.\d+\.\d+$/)) {
       newErrors.version = "Version must be in format x.y.z (e.g. 0.0.1)"
+    }
+
+    if (!description || description.trim() === "") {
+      newErrors.description = "Description is required"
     }
 
     if (!template || template.trim() === "") {
@@ -68,6 +74,7 @@ const NewPromptClient = () => {
         body: JSON.stringify({
           name: promptName,
           template,
+          description,
           version,
           templateVariables,
         }),
@@ -174,6 +181,28 @@ const NewPromptClient = () => {
             </div>
             {errors.version && (
               <p className="text-red-500 text-sm mt-1">{errors.version}</p>
+            )}
+          </div>
+
+          <div className="flex flex-col">
+            <label className="block mb-1 text-gray-500 font-dm-mono font-medium">
+              Description
+            </label>
+            <div
+              className={`border-2 ${
+                errors.description ? "border-red-500" : "border-gray-200"
+              } focus-within:border-burnt-orange focus-within:ring-1 focus-within:ring-burnt-orange bg-cream`}
+            >
+              <textarea
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
+                className="w-full p-2 outline-none border-none font-dm-mono bg-cream resize-y min-h-[42px]"
+                placeholder="e.g. What does this prompt do?"
+                rows={1}
+              />
+            </div>
+            {errors.description && (
+              <p className="text-red-500 text-sm mt-1">{errors.description}</p>
             )}
           </div>
 
