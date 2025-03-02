@@ -55,6 +55,15 @@
 
     --chart-5: 27 87% 67%;
 
+    --cream: 48 100% 97%;            /* #FFFDF3 */
+    --cream-darker: 42 71% 92%;      /* #FDF7EB */
+    --cream-hover: 40 74% 88%;       /* #FDF1E3 */
+    
+    --navy: 222 54% 12%;             /* #0B152D */
+    
+    --burnt-orange: 14 67% 59%;      /* #DC6A50 */
+    --burnt-orange-dark: 14 47% 48%; /* #B55541 */
+
     --radius: 0.5rem
   }
   .dark {
@@ -106,6 +115,10 @@
     --chart-4: 280 65% 60%;
 
     --chart-5: 340 75% 55%
+
+    --cream: 220 13% 18%;            /* Darker version for dark mode */
+    --cream-darker: 220 13% 15%;     /* Darker version for dark mode */
+    --cream-hover: 220 13% 22%;      /* Darker version for dark mode */
   }
 }
 

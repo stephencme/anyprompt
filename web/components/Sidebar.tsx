@@ -17,7 +17,7 @@ const Sidebar = (props: Props) => {
   const pathname = usePathname()
 
   return (
-    <div className="flex flex-col gap-4 pr-8 py-8 bg-[#FDF7EB] text-[#0B152D]">
+    <div className="flex flex-col gap-4 pr-8 py-8 bg-cream-darker text-navy">
       <Image
         src="/logo.svg"
         alt="AnyPrompt Logo"
@@ -29,8 +29,8 @@ const Sidebar = (props: Props) => {
         href="/prompts"
         className={`p-2 min-w-[264px] pl-8 ${
           merriweather.className
-        } transition-colors duration-300 hover:bg-[#FDF1E3] ${
-          pathname === "/prompts" ? "text-[#DC6A50] bg-[#FDF1E3]" : ""
+        } transition-colors duration-300 hover:bg-cream-hover ${
+          pathname === "/prompts" ? "text-burnt-orange bg-cream-hover" : ""
         }`}
       >
         Prompts
@@ -39,8 +39,8 @@ const Sidebar = (props: Props) => {
         href="/settings"
         className={`p-2 pl-8 min-w-[264px] ${
           merriweather.className
-        } transition-colors duration-300 hover:bg-[#FDF1E3] ${
-          pathname === "/settings" ? "text-[#DC6A50] bg-[#FDF1E3]" : ""
+        } transition-colors duration-300 hover:bg-cream-hover ${
+          pathname === "/settings" ? "text-burnt-orange bg-cream-hover" : ""
         }`}
       >
         Settings

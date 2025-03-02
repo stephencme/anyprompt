@@ -36,7 +36,7 @@ const PromptCard = (props: Props) => {
   return (
     <div className="bg-white rounded-lg p-6 shadow-sm flex flex-col gap-4">
       <div className="flex items-center justify-between">
-        <p className={`${DMMonoBold.className} text-lg text-[#0B152D]`}>
+        <p className={`${DMMonoBold.className} text-lg text-navy`}>
           {props.prompt.name}
         </p>
         <Select value={version} onValueChange={setVersion}>
@@ -59,13 +59,11 @@ const PromptCard = (props: Props) => {
           </SelectContent>
         </Select>
       </div>
-      <div
-        className={`${DMMono.className} bg-[#FFFDF3] p-4 text-sm text-gray-500`}
-      >
+      <div className={`${DMMono.className} bg-cream p-4 text-sm text-gray-500`}>
         {props.prompt.template}
       </div>
       <div className="flex items-center gap-4">
-        <button className="flex items-center gap-2 font-bold bg-[#DC6A50] text-white px-4 py-2 hover:bg-[#B55541] transition-all duration-300">
+        <button className="flex items-center gap-2 font-bold bg-burnt-orange text-white px-4 py-2 hover:bg-burnt-orange-dark transition-all duration-300">
           <Play className="w-4 h-4 text-white" fill="white" />
           <p className={`${DMMono.className} font-bold`}>Run</p>
         </button>
