@@ -7,8 +7,8 @@ import { SignupTemplate } from "@anyprompt/core";
 import { Database } from "@/database.types"
 
 const supabase = createClient<Database>(
-  process.env.SUPABASE_URL ?? "",
-  process.env.SUPABASE_ANON_KEY ?? ""
+  process.env.NEXT_PUBLIC_SUPABASE_URL ?? "",
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ?? ""
 )
 
 export default function SignupPage() {
@@ -39,7 +39,7 @@ export default function SignupPage() {
       email, 
       password,
       options: {
-        data: { name }, // Store name in user_metadata
+        emailRedirectTo: "http://localhost:3000/email-confirmed",
       },
     });
 
@@ -57,7 +57,7 @@ export default function SignupPage() {
           {
             id: data.user.id, // Use the user ID from Supabase Authentication
             email: data.user.email || "", // Ensure email is a string
-            name: data.user.user_metadata?.name || "Default Name", // Use name from user_metadata, default to "Default Name"
+            // name: data.user.user_metadata?.name || "Default Name", // Use name from user_metadata, default to "Default Name"
           },
         ]);
   
@@ -86,14 +86,14 @@ export default function SignupPage() {
           className="border p-2 rounded text-black"
           required
         />
-        <input
+        {/* <input
           type="name"
           placeholder="Name"
           value={name}
           onChange={(e) => setName(e.target.value)}
           className="border p-2 rounded text-black"
           required
-        />
+        /> */}
         <input
           type="password"
           placeholder="Password"
