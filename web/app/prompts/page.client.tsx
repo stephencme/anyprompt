@@ -4,7 +4,7 @@ import { Merriweather } from "next/font/google"
 import { PromptTemplate } from "@anyprompt/core"
 import PromptCard from "@/components/PromptCard"
 import { Plus } from "lucide-react"
-
+import Link from "next/link"
 interface PromptsPageClientProps {
   prompts: PromptTemplate[]
 }
@@ -23,11 +23,19 @@ export default function PromptsPageClient({ prompts }: PromptsPageClientProps) {
           <p className={`text-xl font-bold`}>·</p>
           <p className={`text-xl`}>{prompts.length}</p>
         </div>
-        <button className="bg-burnt-orange text-white px-3 py-2 flex items-center gap-1 font-semibold">
+        <Link
+          href="/prompts/new"
+          className="bg-burnt-orange text-white px-3 py-2 flex items-center gap-1 font-semibold"
+        >
           <Plus /> New
-        </button>
+        </Link>
       </div>
       <div className="grid grid-cols-2 gap-4 px-8">
+        {prompts.length === 0 && (
+          <div className="border-2 border-dashed border-gray-300 p-4 h-64">
+            <p className="text-gray-500">Create your first prompt</p>
+          </div>
+        )}
         {prompts.map((prompt) => (
           <PromptCard key={prompt.id} prompt={prompt} />
         ))}

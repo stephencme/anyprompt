@@ -30,7 +30,9 @@ const Sidebar = (props: Props) => {
         className={`p-2 min-w-[264px] pl-8 ${
           merriweather.className
         } transition-colors duration-300 hover:bg-cream-hover ${
-          pathname === "/prompts" ? "text-burnt-orange bg-cream-hover" : ""
+          pathname === "/prompts" || pathname === "/prompts/new"
+            ? "text-burnt-orange bg-cream-hover"
+            : ""
         }`}
       >
         Prompts

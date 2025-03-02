@@ -3,6 +3,7 @@ import { Geist, Geist_Mono } from "next/font/google"
 import "./globals.css"
 import Header from "@/components/Header"
 import Sidebar from "@/components/Sidebar"
+import { dmMono, merriweather } from "./fonts"
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -25,10 +26,11 @@ export default function RootLayout({
   children: React.ReactNode
 }>) {
   return (
-    <html lang="en">
-      <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
-      >
+    <html
+      lang="en"
+      className={`${geistSans.variable} ${geistMono.variable} ${dmMono.variable} ${merriweather.variable} antialiased`}
+    >
+      <body>
         <div className="min-h-screen flex flex-col">
           <div className="flex-1 flex">
             <Sidebar />
