@@ -7,8 +7,8 @@ import { useRouter } from "next/navigation";
 import { Database } from "@/database.types"
 
 const supabase = createClient<Database>(
-  process.env.SUPABASE_URL ?? "",
-  process.env.SUPABASE_ANON_KEY ?? ""
+  process.env.NEXT_PUBLIC_SUPABASE_URL ?? "",
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ?? ""
 )
 
 interface LoginPageClientProps {
@@ -20,8 +20,7 @@ export default function LoginPageClient(props: LoginPageClientProps) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
-
-  const router = useRouter(); //for page redirection
+  const router = useRouter();
 
   useEffect(() => {
     const getUser = async () => {
@@ -34,7 +33,7 @@ export default function LoginPageClient(props: LoginPageClientProps) {
   const handleLogin = async () => {
     setError(null);
 
-    // Log in the user with Supabase Authentication
+    // Log in the user with Supabase Authentication and set session to the user
     const { data, error } = await supabase.auth.signInWithPassword({
       email,
       password,
@@ -44,15 +43,13 @@ export default function LoginPageClient(props: LoginPageClientProps) {
       setError(error.message);
       return;
     }
+
+    //after login, redirect user to the prompt page
+    router.push("/prompt")
   };
 
   const handleSignUp = async () => {
-    //does nothing for now, but once the signup page is done, handleSignUp() will redirect
-    //to /signup
-
-
-    //uncomment once signup page is done and merged into the branch "feature/login"
-    // router.push("/signup"); // Redirect to signup after confirmation
+    router.push("/signup"); // Redirect to signup after confirmation
   };
   
 
@@ -65,17 +62,6 @@ export default function LoginPageClient(props: LoginPageClientProps) {
   return (
     <div className="bg-gray-50 p-8">
       <div className="mb-4">
-        {user ? (
-          <div>
-            <p>Welcome, {user.email}</p>
-            <button
-              onClick={handleLogout}
-              className="bg-red-500 text-white px-4 py-2 rounded"
-            >
-              Logout
-            </button>
-          </div>
-        ) : (
           <div>
             <input
               type="email"
@@ -107,29 +93,7 @@ export default function LoginPageClient(props: LoginPageClientProps) {
             </button>
             {error && <p className="text-red-500">{error}</p>}
           </div>
-        )}
       </div>
-
-      {user && (
-        <table className="bg-white table-auto w-full">
-          <thead>
-            <tr className="border-b border-gray-300">
-              <th className="px-4 py-2 text-left">ID</th>
-              <th className="px-4 py-2 text-left">Name</th>
-            </tr>
-          </thead>
-          <tbody>
-            {props.login.map((login) => (
-              <tr className="border-b border-gray-300" key={login.id}>
-                <td className="font-mono px-4 py-2 text-left">{login.id}</td>
-                <td className="font-mono px-4 py-2 text-left">{login.name}</td>
-                <td className="font-mono px-4 py-2 text-left">
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      )}
     </div>
   );
 }

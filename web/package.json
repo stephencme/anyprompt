@@ -9,7 +9,7 @@
     "lint": "next lint"
   },
   "dependencies": {
-    "@anyprompt/core": "0.1.0",
+    "@anyprompt/core": "file:../core",
     "@supabase/supabase-js": "^2.47.13",
     "dotenv": "^16.4.7",
     "next": "15.1.4",

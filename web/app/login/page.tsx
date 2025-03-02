@@ -5,12 +5,12 @@ import { Database } from "@/database.types"
 import LoginPageClient from "./page.client"
 
 const supabase = createClient<Database>(
-  process.env.SUPABASE_URL ?? "",
-  process.env.SUPABASE_ANON_KEY ?? ""
+  process.env.NEXT_PUBLIC_SUPABASE_URL ?? "",
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ?? ""
 )
 
 export default async function LoginPage() {
-  const { data, error } = await supabase.from("Users").select("id, email, name");
+  const { data, error } = await supabase.from("Users").select("id, email");
 
   if (error) {
     console.error("Error fetching login data:", error.message);
@@ -21,7 +21,7 @@ export default async function LoginPage() {
     return {
       id: user.id.toString(),
       email: user.email,
-      name: user.name,
+      // name: user.name,
     };
   }) ?? [];
 

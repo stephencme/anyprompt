@@ -56,12 +56,12 @@ export type Database = {
         Row: {
           id: number
           email: string
-          name: string
+          // name: string
         }
         Insert: {
           id: string
           email: string
-          name: string
+          // name: string
         }
         Update: {
         }
