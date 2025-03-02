@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { createClient } from "@supabase/supabase-js";
 import { LoginTemplate } from "@anyprompt/core";
-
+import { useRouter } from "next/navigation";
 import { Database } from "@/database.types"
 
 const supabase = createClient<Database>(
@@ -20,6 +20,7 @@ export default function LoginPageClient(props: LoginPageClientProps) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
+  const router = useRouter();
 
   useEffect(() => {
     const getUser = async () => {
@@ -32,7 +33,7 @@ export default function LoginPageClient(props: LoginPageClientProps) {
   const handleLogin = async () => {
     setError(null);
 
-    // Log in the user with Supabase Authentication
+    // Log in the user with Supabase Authentication and set session to the user
     const { data, error } = await supabase.auth.signInWithPassword({
       email,
       password,
@@ -42,64 +43,19 @@ export default function LoginPageClient(props: LoginPageClientProps) {
       setError(error.message);
       return;
     }
+
+    //after login, redirect user to the prompt page
+    router.push("/prompt")
   };
 
   const handleSignUp = async () => {
-    setError(null);
-  
-    // Sign up the user with Supabase Authentication
-    const { data, error } = await supabase.auth.signUp({
-      email,
-      password,
-    });
-  
-    if (error) {
-      setError(error.message);
-      return;
-    }
-  
-    if (data?.user) {
-      // Insert the user profile into your custom table `Users`
-      const { error: insertError } = await supabase
-        .from("Users")
-        .insert([
-          {
-            id: data.user.id, // Use the user ID from Supabase Authentication
-            email: data.user.email || "", // Ensure email is a string
-            name: data.user.user_metadata?.name || "Default Name", // Use name from user_metadata, default to "Default Name"
-          },
-        ]);
-  
-      if (insertError) {
-        setError(insertError.message);
-      } else {
-        setUser(data.user); // Successfully inserted profile
-        console.log("New user signed up and profile added:", data.user);
-      }
-    }
-  };
-  
-
-  const handleLogout = async () => {
-    await supabase.auth.signOut();
-    setUser(null);
+    
   };
 
   // FRONTEND DO WORK HERE:
   return (
     <div className="bg-gray-50 p-8">
       <div className="mb-4">
-        {user ? (
-          <div>
-            <p>Welcome, {user.email}</p>
-            <button
-              onClick={handleLogout}
-              className="bg-red-500 text-white px-4 py-2 rounded"
-            >
-              Logout
-            </button>
-          </div>
-        ) : (
           <div>
             <input
               type="email"
@@ -131,7 +87,6 @@ export default function LoginPageClient(props: LoginPageClientProps) {
             </button>
             {error && <p className="text-red-500">{error}</p>}
           </div>
-        )}
       </div>
 
       {user && (
@@ -146,7 +101,7 @@ export default function LoginPageClient(props: LoginPageClientProps) {
             {props.login.map((login) => (
               <tr className="border-b border-gray-300" key={login.id}>
                 <td className="font-mono px-4 py-2 text-left">{login.id}</td>
-                <td className="font-mono px-4 py-2 text-left">{login.name}</td>
+                {/* <td className="font-mono px-4 py-2 text-left">{login.name}</td> */}
                 <td className="font-mono px-4 py-2 text-left">
                 </td>
               </tr>

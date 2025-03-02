@@ -2,50 +2,74 @@
 
 import React, { useState } from "react";
 import { createClient } from "@supabase/supabase-js";
-import { Database } from "@/database.types";
+import { SignupTemplate } from "@anyprompt/core";
 
-type SupabaseConfig = {
-  url: string;
-  anonKey: string;
-};
+import { Database } from "@/database.types"
 
-type SignupTemplateType = {
-  title: string;
-  description?: string;
-};
+const supabase = createClient<Database>(
+  process.env.NEXT_PUBLIC_SUPABASE_URL ?? "",
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ?? ""
+)
 
-interface SignupPageClientProps {
-  supabaseConfig: SupabaseConfig;
-  signupTemplate: SignupTemplateType;
-}
-
-export default function SignupPageClient({ supabaseConfig, signupTemplate }: SignupPageClientProps) {
-  // Initialize the client on the client side using the passed config
-  const supabase = createClient<Database>(supabaseConfig.url, supabaseConfig.anonKey);
-
-  // ... rest of your component (same as before)
+export default function SignupPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState("");
+  const [user, setUser] = useState<any>(null);
+  const [error, setError] = useState<string | null>(null);
 
-  const handleSignup = async (e: React.FormEvent<HTMLFormElement>) => {
+  const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     setMessage("");
-    try {
-      const { error } = await supabase.auth.signUp({ email, password });
-      if (error) {
-        setMessage(error.message);
-      } else {
-        setMessage("Signup successful! Please check your email for confirmation.");
-      }
-    } catch (err: any) {
-      setMessage(err.message);
-    } finally {
-      setLoading(false);
+    setError(null);
+
+    if (password !== confirmPassword) {
+      setMessage("Passwords do not match");
+      return;
     }
+
+    setMessage("");
+
+    const { data, error } = await supabase.auth.signUp({ 
+      email, 
+      password,
+      options: {
+        emailRedirectTo: "http://localhost:3000/email-confirmed",
+      },
+    });
+
+    if (error) {
+      setMessage(error.message);
+    } else {
+      setMessage("Check your email for confirmation!");
+    }
+
+    if (data?.user) {
+      // Insert the user profile into your custom table `Users`
+      const { error: insertError } = await supabase
+        .from("Users")
+        .insert([
+          {
+            id: data.user.id, // Use the user ID from Supabase Authentication
+            email: data.user.email || "", // Ensure email is a string
+            // name: data.user.user_metadata?.name || "Default Name", // Use name from user_metadata, default to "Default Name"
+          },
+        ]);
+
+      if (insertError) {
+        setError(insertError.message);
+      } else {
+        setUser(data.user); // Successfully inserted profile
+        console.log("New user signed up and profile added:", data.user);
+      }
+    }
+
+    setLoading(false);
   };
+
 
   return (
         <div
@@ -68,15 +92,15 @@ export default function SignupPageClient({ supabaseConfig, signupTemplate }: Sig
               width: "100%",
             }}
           >
-            <h2 style={{ textAlign: "center", marginBottom: "1rem" }}>{signupTemplate.title}</h2>
-            {signupTemplate.description && (
+            <h2 style={{ textAlign: "center", marginBottom: "1rem", color: "black", }}>{ "Create an Account" }</h2>
+            { (
               <p style={{ textAlign: "center", marginBottom: "1.5rem", color: "#555" }}>
-                {signupTemplate.description}
+                { "Fill in the form below to sign up and get started." }
               </p>
             )}
             <form onSubmit={handleSignup}>
               <div style={{ marginBottom: "1rem" }}>
-                <label htmlFor="email" style={{ display: "block", marginBottom: ".5rem" }}>
+                <label htmlFor="email" style={{ display: "block", marginBottom: ".5rem", color: "black", }}>
                   Email:
                 </label>
                 <input
@@ -90,11 +114,12 @@ export default function SignupPageClient({ supabaseConfig, signupTemplate }: Sig
                     padding: "0.5rem",
                     border: "1px solid #ccc",
                     borderRadius: "4px",
+                    color: "black",
                   }}
                 />
               </div>
               <div style={{ marginBottom: "1rem" }}>
-                <label htmlFor="password" style={{ display: "block", marginBottom: ".5rem" }}>
+                <label htmlFor="password" style={{ display: "block", marginBottom: ".5rem", color: "black", }}>
                   Password:
                 </label>
                 <input
@@ -108,6 +133,26 @@ export default function SignupPageClient({ supabaseConfig, signupTemplate }: Sig
                     padding: "0.5rem",
                     border: "1px solid #ccc",
                     borderRadius: "4px",
+                    color: "black",
+                  }}
+                />
+                </div>
+                <div style={{ marginBottom: "1rem" }}>
+                <label htmlFor="confirmpassword" style={{ display: "block", marginBottom: ".5rem", color: "black", }}>
+                  Confirm Password:
+                </label>
+                <input
+                  id="confirmpassword"
+                  type="password"
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                  required
+                  style={{
+                    width: "100%",
+                    padding: "0.5rem",
+                    border: "1px solid #ccc",
+                    borderRadius: "4px",
+                    color: "black"
                   }}
                 />
               </div>
