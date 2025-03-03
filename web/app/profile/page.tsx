@@ -8,13 +8,12 @@ const supabase = createClient<Database>(
 );
 
 export default async function ProfilePage() {
-  // Replace with your own logic to get the current user ID.
-  const userId = "some-user-id"; // Placeholder user ID
+  // Replace with your real authentication mechanism to obtain the current user ID.
+  const userId = "some-user-id"; // Placeholder: update with actual user ID
 
-  // Fetch the user's profile from the "profiles" table.
   const { data, error } = await supabase
-    .from("profiles")
-    .select("id, email, name, avatar_url")
+    .from("profiles") //table within database
+    .select("id, email, name, avatar_url, api_key")
     .eq("id", userId)
     .single();
 
@@ -22,7 +21,6 @@ export default async function ProfilePage() {
     console.error("Error fetching profile:", error.message);
   }
 
-  // If no data is returned, set profile to null.
   const profile = data || null;
 
   return (
