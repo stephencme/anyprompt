@@ -43,16 +43,8 @@ export async function POST(request: Request) {
     }
 
     // Decrypt the stored API key.
-<<<<<<< HEAD
-    console.log(apiKeyData)
     const decrypted_apiKey = decrypt(apiKeyData.encrypted_api_key);
 
-    console.log(decrypted_apiKey)
-
-=======
-    const decrypted_apiKey = decrypt(apiKeyData.encrypted_api_key);
-
->>>>>>> f120c39 (API endpoint for running prompt on OpenAI)
     // Retrieve the prompt template from Supabase.
     const { data: templateData, error: templateError } = await supabase
       .from('prompt_version')
@@ -81,12 +73,6 @@ export async function POST(request: Request) {
     // Extract the generated text from the API response.
     const generatedText = completion.choices?.[0]?.message.content;
 
-<<<<<<< HEAD
-    console.log(generatedText)
-    console.log(promptID)
-
-=======
->>>>>>> f120c39 (API endpoint for running prompt on OpenAI)
     // Store the result in the Supabase "run_history" table.
     const { data: resultData, error: insertError } = await supabase
       .from('run_history')
@@ -100,10 +86,7 @@ export async function POST(request: Request) {
       ]);
 
     if (insertError) {
-<<<<<<< HEAD
       console.error('Insert error details:', insertError);
-=======
->>>>>>> f120c39 (API endpoint for running prompt on OpenAI)
       return NextResponse.json({ error: 'Failed to store result in database' }, { status: 500 });
     }
 
