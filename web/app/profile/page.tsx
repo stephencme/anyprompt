@@ -8,21 +8,18 @@ const supabase = createClient<Database>(
 );
 
 export default async function ProfilePage() {
-  // Replace with your real authentication mechanism to obtain the current user ID.
-  const userId = "some-user-id"; // Placeholder: update with actual user ID
+  const user = (await supabase.auth.getSession()).data.session?.user;
+    if (!user) {
+      return <div>User not found</div>
+    }
 
-  const { data, error } = await supabase
-    .from("profiles") //table within database
-    .select("id, email, name, avatar_url, api_key")
-    .eq("id", userId)
-    .single();
+    const { data, error } = await supabase.from("Users").select("*").eq("id", user.id).single()
+    if(error){
+      return <div>Error retreiving user data</div>
+    }
 
-  if (error) {
-    console.error("Error fetching profile:", error.message);
-  }
-
-  const profile = data || null;
-
+    const profile = data;
+  
   return (
     <main style={{ padding: "2rem", fontFamily: "Arial, sans-serif" }}>
       <ProfilePageClient profile={profile} />

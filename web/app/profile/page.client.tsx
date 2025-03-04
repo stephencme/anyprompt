@@ -1,15 +1,17 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
+import { User } from "@anyprompt/core";
+
 
 // for the profile data
-type Profile = {
-  id: string;
-  email: string;
-  name: string;
-  avatar_url?: string | null;
-  api_key?: string | null;
-};
+// type Profile = {
+//   id: string;
+//   email: string;
+//   name: string;
+//   avatar_url?: string | null;
+//   api_key?: string | null;
+// };
 
 type ApiKeyRecord = {
   id: string;
@@ -19,7 +21,7 @@ type ApiKeyRecord = {
 };
 
 interface ProfilePageClientProps {
-  profile: Profile | null;
+  profile: User | null;
 }
 
 export default function ProfilePageClient({ profile }: ProfilePageClientProps) {
