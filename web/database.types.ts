@@ -54,49 +54,57 @@ export type Database = {
       }
       Users: {
         Row: {
-          id: number
+          id: string
           email: string
           name: string
+          avatar_url: string
+          api_key: string
+          created_at: Date
+          updated_at: Date
         }
         Insert: {
           id: string
           email: string
-          name: string
-        }
-        Update: {
-        }
-        Relationships: []
-      }
-      profiles: {
-        Row: {
-          id: string
-          email: string
-          name: string
+          name: string | null
           avatar_url: string | null
           api_key: string | null
-          created_at: string
-          updated_at: string
-        }
-        Insert: {
-          id?: string
-          email: string
-          name?: string
-          avatar_url?: string | null
-          api_key?: string | null
-          created_at?: string
-          updated_at?: string
+          created_at: Date | null
+          updated_at: Date | null
         }
         Update: {
-          id?: string
-          email?: string
-          name?: string
-          avatar_url?: string | null
-          api_key?: string | null
-          created_at?: string
-          updated_at?: string
         }
         Relationships: []
       }
+      // profiles: {
+      //   Row: {
+      //     id: string
+      //     email: string
+      //     name: string
+      //     avatar_url: string | null
+      //     api_key: string | null
+      //     created_at: string
+      //     updated_at: string
+      //   }
+      //   Insert: {
+      //     id?: string
+      //     email: string
+      //     name?: string
+      //     avatar_url?: string | null
+      //     api_key?: string | null
+      //     created_at?: string
+      //     updated_at?: string
+      //   }
+      //   Update: {
+      //     id?: string
+      //     email?: string
+      //     name?: string
+      //     avatar_url?: string | null
+      //     api_key?: string | null
+      //     created_at?: string
+      //     updated_at?: string
+      //   }
+      //   Relationships: []
+      // }
     }
     Views: {
       [_ in never]: never
