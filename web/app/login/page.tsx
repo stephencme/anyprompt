@@ -10,6 +10,7 @@ const supabase = createClient<Database>(
 )
 
 export default async function LoginPage() {
+  //replace .select("id, email, name") to .select("*") if you want all entries
   const { data, error } = await supabase.from("Users").select("id, email, name");
 
   if (error) {
@@ -22,6 +23,16 @@ export default async function LoginPage() {
       id: user.id.toString(),
       email: user.email,
       name: user.name,
+      avatar_url: null,
+      api_key: null,
+      created_at: null,
+      updated_at: null,
+
+      // uncomment if you want all entries
+      //avatar_url: user.avatar_url,
+      // api_key: user.api_key,
+      // created_at: user.created_at,
+      // updated_at: user.updated_at,
     };
   }) ?? [];
 
