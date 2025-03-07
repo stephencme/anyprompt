@@ -1,36 +1,45 @@
 "use client"
 
-import { AnyPromptCore, PromptTemplate } from "@anyprompt/core"
-
+import { Merriweather } from "next/font/google"
+import { PromptTemplate } from "@anyprompt/core"
+import PromptCard from "@/components/PromptCard"
+import { Plus } from "lucide-react"
+import Link from "next/link"
 interface PromptsPageClientProps {
   prompts: PromptTemplate[]
 }
 
-export default function PromptsPageClient(props: PromptsPageClientProps) {
+const merriweather = Merriweather({
+  weight: "400",
+  subsets: ["latin"],
+})
+
+export default function PromptsPageClient({ prompts }: PromptsPageClientProps) {
   return (
-    <div className="bg-gray-50 p-8">
-      <table className="bg-white table-auto w-full">
-        <thead>
-          <tr className="border-b border-gray-300">
-            <th className="px-4 py-2 text-left">ID</th>
-            <th className="px-4 py-2 text-left">Name</th>
-            <th className="px-4 py-2 text-left">Version</th>
-            <th className="px-4 py-2 text-left">Template</th>
-          </tr>
-        </thead>
-        <tbody>
-          {props.prompts.map((prompt) => (
-            <tr className="border-b border-gray-300" key={prompt.id}>
-              <td className="font-mono px-4 py-2 text-left">{prompt.id}</td>
-              <td className="font-mono px-4 py-2 text-left">{prompt.name}</td>
-              <td className="font-mono px-4 py-2 text-left">
-                {prompt.version}
-              </td>
-              <td className="px-4 py-2 text-left">{prompt.template}</td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
+    <div className="bg-cream min-h-screen w-full">
+      <div className="flex items-center justify-between px-8 py-6">
+        <div className={`${merriweather.className} flex items-center gap-2`}>
+          <p className={`text-xl font-bold`}>Prompts</p>
+          <p className={`text-xl font-bold`}>·</p>
+          <p className={`text-xl`}>{prompts.length}</p>
+        </div>
+        <Link
+          href="/prompts/new"
+          className="bg-burnt-orange text-white px-3 py-2 flex items-center gap-1 font-semibold"
+        >
+          <Plus /> New
+        </Link>
+      </div>
+      <div className="grid grid-cols-2 gap-4 px-8">
+        {prompts.length === 0 && (
+          <div className="border-2 border-dashed border-gray-300 p-4 h-64">
+            <p className="text-gray-500">Create your first prompt</p>
+          </div>
+        )}
+        {prompts.map((prompt) => (
+          <PromptCard key={prompt.id} prompt={prompt} />
+        ))}
+      </div>
     </div>
   )
 }
