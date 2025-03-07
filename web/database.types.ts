@@ -52,6 +52,59 @@ export type Database = {
         }
         Relationships: []
       }
+      Users: {
+        Row: {
+          id: string
+          email: string
+          name: string
+          avatar_url: string
+          api_key: string
+          created_at: Date
+          updated_at: Date
+        }
+        Insert: {
+          id: string
+          email: string
+          name: string | null
+          avatar_url: string | null
+          api_key: string | null
+          created_at: Date | null
+          updated_at: Date | null
+        }
+        Update: {
+        }
+        Relationships: []
+      }
+      // profiles: {
+      //   Row: {
+      //     id: string
+      //     email: string
+      //     name: string
+      //     avatar_url: string | null
+      //     api_key: string | null
+      //     created_at: string
+      //     updated_at: string
+      //   }
+      //   Insert: {
+      //     id?: string
+      //     email: string
+      //     name?: string
+      //     avatar_url?: string | null
+      //     api_key?: string | null
+      //     created_at?: string
+      //     updated_at?: string
+      //   }
+      //   Update: {
+      //     id?: string
+      //     email?: string
+      //     name?: string
+      //     avatar_url?: string | null
+      //     api_key?: string | null
+      //     created_at?: string
+      //     updated_at?: string
+      //   }
+      //   Relationships: []
+      // }
     }
     Views: {
       [_ in never]: never
