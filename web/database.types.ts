@@ -54,7 +54,7 @@ export type Database = {
       }
       Users: {
         Row: {
-          id: number
+          id: string
           email: string
           // name: string
         }

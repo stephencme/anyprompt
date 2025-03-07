@@ -1,40 +1,26 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { createClient } from "@supabase/supabase-js";
-import { LoginTemplate } from "@anyprompt/core";
 import { useRouter } from "next/navigation";
 import { Database } from "@/database.types"
 
 const supabase = createClient<Database>(
-  process.env.NEXT_PUBLIC_SUPABASE_URL ?? "",
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ?? ""
+  process.env.SUPABASE_URL ?? "",
+  process.env.SUPABASE_ANON_KEY ?? ""
 )
 
-interface LoginPageClientProps {
-  login: LoginTemplate[];
-}
-
-export default function LoginPageClient(props: LoginPageClientProps) {
-  const [user, setUser] = useState<any>(null);
+export default function LoginPageClient() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
   const router = useRouter();
 
-  useEffect(() => {
-    const getUser = async () => {
-      const { data, error } = await supabase.auth.getUser();
-      if (data?.user) setUser(data.user);
-    };
-    getUser();
-  }, []);
-
   const handleLogin = async () => {
     setError(null);
 
     // Log in the user with Supabase Authentication and set session to the user
-    const { data, error } = await supabase.auth.signInWithPassword({
+    const { error } = await supabase.auth.signInWithPassword({
       email,
       password,
     });
@@ -52,12 +38,6 @@ export default function LoginPageClient(props: LoginPageClientProps) {
     router.push("/signup"); // Redirect to signup after confirmation
   };
   
-
-  const handleLogout = async () => {
-    await supabase.auth.signOut();
-    setUser(null);
-  };
-
   // FRONTEND DO WORK HERE:
   return (
     <div className="bg-gray-50 p-8">

@@ -1,20 +1,15 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { createClient } from "@supabase/supabase-js";
-import { EmailConfirmedTemplate } from "@anyprompt/core";
 
 import { Database } from "@/database.types"
 import { useRouter } from "next/navigation";
 
 const supabase = createClient<Database>(
-  process.env.NEXT_PUBLIC_SUPABASE_URL ?? "",
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ?? ""
+  process.env.SUPABASE_URL ?? "",
+  process.env.SUPABASE_ANON_KEY ?? ""
 )
-
-interface EmailConfirmedPage {
-  confirm: EmailConfirmedTemplate[];
-}
 
 const ConfirmEmail = () => {
   const router = useRouter();

@@ -2,13 +2,11 @@
 
 import React, { useState } from "react";
 import { createClient } from "@supabase/supabase-js";
-import { SignupTemplate } from "@anyprompt/core";
-
 import { Database } from "@/database.types"
 
 const supabase = createClient<Database>(
-  process.env.NEXT_PUBLIC_SUPABASE_URL ?? "",
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ?? ""
+  process.env.SUPABASE_URL ?? "",
+  process.env.SUPABASE_ANON_KEY ?? ""
 )
 
 export default function SignupPage() {
@@ -17,14 +15,12 @@ export default function SignupPage() {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState("");
-  const [user, setUser] = useState<any>(null);
-  const [error, setError] = useState<string | null>(null);
+  // const [error, setError] = useState<string | null>(null);
 
   const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     setMessage("");
-    setError(null);
 
     if (password !== confirmPassword) {
       setMessage("Passwords do not match");
@@ -55,14 +51,12 @@ export default function SignupPage() {
           {
             id: data.user.id, // Use the user ID from Supabase Authentication
             email: data.user.email || "", // Ensure email is a string
-            // name: data.user.user_metadata?.name || "Default Name", // Use name from user_metadata, default to "Default Name"
           },
         ]);
 
       if (insertError) {
-        setError(insertError.message);
+        setMessage(insertError.message)
       } else {
-        setUser(data.user); // Successfully inserted profile
         console.log("New user signed up and profile added:", data.user);
       }
     }
