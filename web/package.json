@@ -9,7 +9,7 @@
     "lint": "next lint"
   },
   "dependencies": {
-    "@anyprompt/core": "file:../core",
+    "@anyprompt/core": "0.1.0",
     "@supabase/supabase-js": "^2.47.13",
     "next": "15.1.4",
     "react": "^19.0.0",
