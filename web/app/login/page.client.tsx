@@ -11,6 +11,9 @@ const supabase = createClient<Database>(
 )
 
 export default function LoginPageClient() {
+  console.log("Login Page");
+  console.log("Supabase url: " + process.env.SUPABASE_URL);
+  console.log("Supabase key: " + process.env.SUPABASE_ANON_KEY);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
