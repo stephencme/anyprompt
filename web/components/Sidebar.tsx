@@ -11,9 +11,7 @@ const merriweather = Merriweather({
   subsets: ["latin"],
 })
 
-type Props = {}
-
-const Sidebar = (props: Props) => {
+const Sidebar = () => {
   const pathname = usePathname()
 
   return (
