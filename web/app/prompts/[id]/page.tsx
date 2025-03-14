@@ -11,7 +11,7 @@ interface PageParams {
 
 export default async function PromptPage({ params }: PageParams) {
   // Extract and validate id from params - no longer accessing it directly multiple times
-  const id = params.id
+  const id = await params.id
 
   const supabase = createClient<Database>(
     process.env.SUPABASE_URL ?? "",

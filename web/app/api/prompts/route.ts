@@ -28,7 +28,7 @@ export async function GET() {
       prompts.map(async (prompt) => {
         const { data: versions, error: versionsError } = await supabase
           .from("prompt_version")
-          .select("version")
+          .select("version, prompt, template_variables")
           .eq("prompt_id", prompt.id)
           .order("created_at", { ascending: false })
 
@@ -45,7 +45,11 @@ export async function GET() {
 
         return {
           ...prompt,
-          versions: versions.map((v) => v.version),
+          versions: versions.map((v) => ({
+            version: v.version,
+            prompt: v.prompt,
+            template_variables: v.template_variables,
+          })),
         }
       })
     )

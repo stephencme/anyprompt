@@ -9,7 +9,9 @@ async function getPromptsWithVersions() {
     throw new Error("Failed to fetch prompts")
   }
 
-  return res.json()
+  const prompts = await res.json()
+
+  return prompts
 }
 
 export default async function PromptsPage() {

@@ -1,14 +1,16 @@
 "use client"
 
-import React, { useState, useEffect } from "react"
+import React, { useState, useEffect, useCallback } from "react"
 import { toast } from "sonner"
 import { Database } from "@/database.types"
+import { useRunDialog } from "@/hooks/useRunDialog"
+import { extractTemplateVariables } from "@/lib/utils"
 
-// Import our new components
 import PromptHeader from "./components/PromptHeader"
 import PromptEditor from "./components/PromptEditor"
 import RunHistory from "./components/RunHistory"
 import NewVersionDialog from "./components/NewVersionDialog"
+import RunDialog from "./components/RunDialog"
 
 interface PromptClientProps {
   id: string
@@ -17,9 +19,13 @@ interface PromptClientProps {
 }
 
 const PromptClient = ({ id, prompt, versions }: PromptClientProps) => {
-  const [promptName, setPromptName] = useState<string>(prompt.name)
+  // To do: allow users to edit prompt name
+  const [promptName] = useState<string>(prompt.name)
   const [version, setVersion] = useState<string>(versions[0].version as string)
   const [template, setTemplate] = useState<string>(versions[0].prompt as string)
+  const [templateVariables, setTemplateVariables] = useState<string[]>(
+    versions[0].template_variables as string[]
+  )
   const [description, setDescription] = useState<string>(
     prompt.description || ""
   )
@@ -32,35 +38,42 @@ const PromptClient = ({ id, prompt, versions }: PromptClientProps) => {
     description?: string
     general?: string
   }>({})
-  const [runHistory, setRunHistory] = useState<any[]>([])
+  const [runHistory, setRunHistory] = useState<
+    Database["public"]["Tables"]["run_history"]["Row"][]
+  >([])
   const [newVersionDialogOpen, setNewVersionDialogOpen] =
     useState<boolean>(false)
 
-  // Extract template variables from the template
-  const extractTemplateVariables = (templateText: string): string[] => {
-    const regex = /{{([^{}]+)}}/g
-    const matches = [...templateText.matchAll(regex)]
-    const variables = matches.map((match) => match[1].trim())
-    // Remove duplicates
-    return [...new Set(variables)]
-  }
+  const {
+    isOpen: runDialogOpen,
+    isLoading: isRunning,
+    handleRun,
+    handleClose: handleRunDialogClose,
+    handleRunSubmit,
+  } = useRunDialog({
+    promptId: id,
+    version,
+    onSuccess: () => {
+      // Refresh run history after successful run
+      fetchRunHistory()
+    },
+  })
 
-  // Fetch run history
-  useEffect(() => {
-    const fetchRunHistory = async () => {
-      try {
-        const response = await fetch(`/api/prompts/${id}/runs`)
-        if (response.ok) {
-          const data = await response.json()
-          setRunHistory(data)
-        }
-      } catch (error) {
-        console.error("Error fetching run history:", error)
+  const fetchRunHistory = useCallback(async () => {
+    try {
+      const response = await fetch(`/api/prompts/${id}/runs`)
+      if (response.ok) {
+        const data = await response.json()
+        setRunHistory(data)
       }
+    } catch (error) {
+      console.error("Error fetching run history:", error)
     }
-
-    fetchRunHistory()
   }, [id])
+
+  useEffect(() => {
+    fetchRunHistory()
+  }, [id, fetchRunHistory])
 
   // Validate form fields
   const validateForm = (): boolean => {
@@ -91,8 +104,8 @@ const PromptClient = ({ id, prompt, versions }: PromptClientProps) => {
 
     try {
       // Extract template variables
-      const templateVariables = extractTemplateVariables(template)
-
+      const newTemplateVariables = extractTemplateVariables(template)
+      setTemplateVariables(newTemplateVariables)
       // Call API route to update prompt
       const response = await fetch(`/api/prompts/${id}`, {
         method: "PUT",
@@ -104,7 +117,7 @@ const PromptClient = ({ id, prompt, versions }: PromptClientProps) => {
           template,
           description,
           version,
-          templateVariables,
+          templateVariables: newTemplateVariables,
         }),
       })
 
@@ -133,11 +146,6 @@ const PromptClient = ({ id, prompt, versions }: PromptClientProps) => {
     }
   }
 
-  const handleRun = async () => {
-    // TODO: Implement run functionality
-    console.log("Running prompt:", { name: promptName, version, template })
-  }
-
   // Handle version change
   const handleVersionChange = (newVersion: string) => {
     // Find the selected version from versions array
@@ -161,7 +169,7 @@ const PromptClient = ({ id, prompt, versions }: PromptClientProps) => {
         body: JSON.stringify({
           version: newVersion,
           prompt: template,
-          templateVariables: extractTemplateVariables(template),
+          templateVariables,
         }),
       })
 
@@ -239,6 +247,15 @@ const PromptClient = ({ id, prompt, versions }: PromptClientProps) => {
         onCreateVersion={handleCreateNewVersion}
         currentVersion={version}
         isLoading={isCreatingVersion}
+      />
+
+      <RunDialog
+        isOpen={runDialogOpen}
+        onClose={handleRunDialogClose}
+        onRun={handleRunSubmit}
+        prompt={template}
+        templateVariables={templateVariables}
+        isLoading={isRunning}
       />
     </div>
   )

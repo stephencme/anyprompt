@@ -2,9 +2,9 @@
 
 import React from "react"
 import { Play } from "lucide-react"
-
+import { Database } from "@/database.types"
 interface RunHistoryProps {
-  runHistory: any[]
+  runHistory: Database["public"]["Tables"]["run_history"]["Row"][]
   onRun: () => void
 }
 

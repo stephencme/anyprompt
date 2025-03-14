@@ -4,6 +4,7 @@ import { Merriweather } from "next/font/google"
 import PromptCard from "@/components/PromptCard"
 import { Plus } from "lucide-react"
 import Link from "next/link"
+import { PromptVersion } from "@/types/prompts"
 
 type PromptWithVersions = {
   id: string
@@ -11,9 +12,8 @@ type PromptWithVersions = {
   description: string
   created_at: string
   updated_at: string
-  versions: string[]
+  versions: PromptVersion[]
 }
-
 interface PromptsPageClientProps {
   prompts: PromptWithVersions[]
 }
