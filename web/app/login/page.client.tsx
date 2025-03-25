@@ -19,8 +19,6 @@ const dmMono = DM_Mono({
   subsets: ["latin"],
   weight: "400", // You can adjust the weight as needed
 });
-import { useRouter } from "next/navigation";
-import { Database } from "@/database.types"
 
 const supabase = createClient<Database>(
   process.env.SUPABASE_URL ?? "https://qcuruxudpkctlyrvagyy.supabase.co",
@@ -50,10 +48,6 @@ export default function LoginPageClient() {
 
     //after login, redirect user to the prompts page
     router.push("/prompts")
-  };
-
-  const handleSignUp = async () => {
-    router.push("/signup"); // Redirect to signup after confirmation
   };
   
   // FRONTEND DO WORK HERE:
