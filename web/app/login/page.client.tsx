@@ -115,7 +115,7 @@ export default function LoginPageClient() {
         </div>
       </div>
       <div className="flex justify-center text-[#6D717B] text-[13px] leading-[15.76px] space-x-4">
-      <Link href="#" target="_blank" className="hover:underline">
+      <Link href="https://github.com/stephencme/anyprompt" target="_blank" className="hover:underline">
         GitHub
       </Link>
       <span>|</span>
@@ -123,7 +123,7 @@ export default function LoginPageClient() {
         Report an issue
       </Link>
       <span>|</span>
-      <Link href="#" target="_blank" className="hover:underline">
+      <Link href="https://github.com/stephencme/anyprompt/blob/main/CONTRIBUTING.md" target="_blank" className="hover:underline">
         Contribute
       </Link>
     </div>
