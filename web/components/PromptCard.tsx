@@ -13,14 +13,13 @@ import { Play } from "lucide-react"
 import Link from "next/link"
 import { useRunDialog } from "@/hooks/useRunDialog"
 import RunDialog from "@/app/prompts/[id]/components/RunDialog"
-import { PromptVersion } from "@/types/prompts"
-
+import { Database } from "@/database.types"
 type PromptCardProps = {
   prompt: {
     id: string
     name: string
     description: string
-    versions: PromptVersion[]
+    versions: Database["public"]["Tables"]["prompt_version"]["Row"][]
   }
 }
 
@@ -91,8 +90,8 @@ const PromptCard = ({ prompt }: PromptCardProps) => {
         isOpen={isOpen}
         onClose={handleClose}
         onRun={handleRunSubmit}
-        prompt={
-          prompt.versions.find((v) => v.version === version)?.prompt || ""
+        promptVersion={
+          prompt.versions.find((v) => v.version === version) || null
         }
         templateVariables={
           prompt.versions.find((v) => v.version === version)

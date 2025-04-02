@@ -7,11 +7,15 @@ interface UseRunDialogProps {
   onSuccess?: () => void
 }
 
-export function useRunDialog({
-  promptId,
-  version,
-  onSuccess,
-}: UseRunDialogProps) {
+export interface RunPromptRequest {
+  userID: string
+  promptId: string
+  provider: string
+  model: string
+  parameters: Record<string, string>
+}
+
+export function useRunDialog({ onSuccess }: UseRunDialogProps) {
   const [isOpen, setIsOpen] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
 
@@ -23,26 +27,35 @@ export function useRunDialog({
     setIsOpen(false)
   }
 
-  const handleRunSubmit = async (variables: Record<string, string>) => {
+  const handleRunSubmit = async ({
+    userID,
+    promptId,
+    provider,
+    model,
+    parameters,
+  }: RunPromptRequest) => {
     setIsLoading(true)
     try {
       // TODO: Replace with actual API call
-      // const response = await fetch(`/api/prompts/${promptId}/runs`, {
-      //   method: "POST",
-      //   headers: {
-      //     "Content-Type": "application/json",
-      //   },
-      //   body: JSON.stringify({
-      //     version,
-      //     variables,
-      //   }),
-      // })
+      const response = await fetch(`/api/run-prompt`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          userID,
+          promptId,
+          provider,
+          model,
+          parameters, // template variables
+        }),
+      })
 
-      // const data = await response.json()
+      const data = await response.json()
 
-      // if (!response.ok) {
-      //   throw new Error(data.error || "Failed to run prompt")
-      // }
+      if (!response.ok) {
+        throw new Error(data.error || "Failed to run prompt")
+      }
 
       // Close the dialog
       setIsOpen(false)

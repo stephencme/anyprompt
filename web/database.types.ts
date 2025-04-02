@@ -9,33 +9,63 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      profiles: {
+        Row: {
+          api_key: string | null
+          avatar_url: string | null
+          created_at: string | null
+          email: string
+          id: string
+          name: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          api_key?: string | null
+          avatar_url?: string | null
+          created_at?: string | null
+          email?: string
+          id?: string
+          name?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          api_key?: string | null
+          avatar_url?: string | null
+          created_at?: string | null
+          email?: string
+          id?: string
+          name?: string | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       prompt_version: {
         Row: {
           created_at: string
           id: string
           prompt: string | null
-          prompt_id: string | null
+          prompt_id: string
           template_variables: string[] | null
           updated_at: string | null
-          version: string | null
+          version: string
         }
         Insert: {
           created_at?: string
           id?: string
           prompt?: string | null
-          prompt_id?: string | null
+          prompt_id: string
           template_variables?: string[] | null
           updated_at?: string | null
-          version?: string | null
+          version: string
         }
         Update: {
           created_at?: string
           id?: string
           prompt?: string | null
-          prompt_id?: string | null
+          prompt_id?: string
           template_variables?: string[] | null
           updated_at?: string | null
-          version?: string | null
+          version?: string
         }
         Relationships: [
           {
@@ -73,27 +103,27 @@ export type Database = {
       }
       run_history: {
         Row: {
-          additional_metadata: Json | null
+          additional_metadata: Json
           id: string
-          model: string | null
-          prompt_version: string | null
-          run_result: string | null
+          model: string
+          prompt_version: string
+          run_result: string
           run_timestamp: string
         }
         Insert: {
-          additional_metadata?: Json | null
+          additional_metadata: Json
           id?: string
-          model?: string | null
-          prompt_version?: string | null
-          run_result?: string | null
+          model: string
+          prompt_version: string
+          run_result: string
           run_timestamp?: string
         }
         Update: {
-          additional_metadata?: Json | null
+          additional_metadata?: Json
           id?: string
-          model?: string | null
-          prompt_version?: string | null
-          run_result?: string | null
+          model?: string
+          prompt_version?: string
+          run_result?: string
           run_timestamp?: string
         }
         Relationships: [
@@ -140,16 +170,31 @@ export type Database = {
       }
       Users: {
         Row: {
+          api_key: string | null
+          avatar_url: string | null
+          created_at: string | null
           email: string
           id: string
+          name: string | null
+          updated_at: string | null
         }
         Insert: {
+          api_key?: string | null
+          avatar_url?: string | null
+          created_at?: string | null
           email: string
-          id: string
+          id?: string
+          name?: string | null
+          updated_at?: string | null
         }
         Update: {
+          api_key?: string | null
+          avatar_url?: string | null
+          created_at?: string | null
           email?: string
           id?: string
+          name?: string | null
+          updated_at?: string | null
         }
         Relationships: []
       }

@@ -49,7 +49,7 @@ const PromptClient = ({ id, prompt, versions }: PromptClientProps) => {
     isLoading: isRunning,
     handleRun,
     handleClose: handleRunDialogClose,
-    handleRunSubmit,
+    handleRunSubmit: handleRunSubmit,
   } = useRunDialog({
     promptId: id,
     version,
@@ -253,7 +253,7 @@ const PromptClient = ({ id, prompt, versions }: PromptClientProps) => {
         isOpen={runDialogOpen}
         onClose={handleRunDialogClose}
         onRun={handleRunSubmit}
-        prompt={template}
+        promptVersion={versions.find((v) => v.version === version) || null}
         templateVariables={templateVariables}
         isLoading={isRunning}
       />

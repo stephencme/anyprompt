@@ -18,15 +18,17 @@ import {
   SelectContent,
   SelectItem,
 } from "@/components/ui/select"
+import { RunPromptRequest } from "@/hooks/useRunDialog"
+import { Database } from "@/database.types"
 
 const models = ["gpt-4o", "gpt-4o-mini", "gpt-3.5-turbo", "claude-3-5-sonnet"]
 
 interface RunDialogProps {
   isOpen: boolean
   onClose: () => void
-  onRun: (variables: Record<string, string>) => Promise<void>
-  prompt: string
-  templateVariables: string[]
+  onRun: (request: RunPromptRequest) => Promise<void>
+  promptVersion: Database["public"]["Tables"]["prompt_version"]["Row"] | null
+  templateVariables?: string[]
   isLoading: boolean
 }
 
@@ -39,8 +41,8 @@ export default function RunDialog({
   isOpen,
   onClose,
   onRun,
-  prompt,
-  templateVariables,
+  promptVersion,
+  templateVariables = [],
   isLoading,
 }: RunDialogProps) {
   const [variables, setVariables] = useState<Record<string, string>>({})
@@ -61,7 +63,13 @@ export default function RunDialog({
       return
     }
 
-    await onRun(variables)
+    await onRun({
+      userID: "1",
+      promptId: "1",
+      provider: "openai",
+      model,
+      parameters: variables,
+    })
   }
 
   if (!prompt || !templateVariables) {
@@ -108,7 +116,7 @@ export default function RunDialog({
             <p className="text-gray-500 text-sm font-dm-mono">Input preview</p>
             <textarea
               className="w-full h-24 p-2 outline-none border-2 border-gray-200 bg-cream font-dm-mono"
-              value={prompt.replace(
+              value={promptVersion?.prompt?.replace(
                 /{{([^{}]+)}}/g,
                 (match, p1) => variables[p1] || `{{${p1}}}`
               )}
