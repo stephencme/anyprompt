@@ -3,18 +3,20 @@ import { Database } from "@/database.types";
 import ProfilePageClient from "./page.client";
 
 const supabase = createClient<Database>(
-  process.env.NEXT_PUBLIC_SUPABASE_URL ?? "",
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ?? ""
+  process.env.SUPABASE_URL ?? "",
+  process.env.SUPABASE_ANON_KEY ?? ""
 );
 
 export default async function ProfilePage() {
   const user = (await supabase.auth.getSession()).data.session?.user;
     if (!user) {
-      return <div>User not found</div>
+      return <div>User not found</div>;
     }
 
-    const { data, error } = await supabase.from("Users").select("*").eq("id", user.id).single()
+    const { data, error } = await supabase.from("Users").select('*').eq("id", user.id).single(); // querry does not work
+    console.log(data);
     if(error){
+      console.log(error.message);
       return <div>Error retreiving user data</div>
     }
 
