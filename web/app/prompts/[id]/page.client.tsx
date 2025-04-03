@@ -22,6 +22,7 @@ const PromptClient = ({ id, prompt, versions }: PromptClientProps) => {
   // To do: allow users to edit prompt name
   const [promptName] = useState<string>(prompt.name)
   const [version, setVersion] = useState<string>(versions[0].version as string)
+  const [versionId, setVersionId] = useState<string>(versions[0].id)
   const [template, setTemplate] = useState<string>(versions[0].prompt as string)
   const [templateVariables, setTemplateVariables] = useState<string[]>(
     versions[0].template_variables as string[]
@@ -61,19 +62,53 @@ const PromptClient = ({ id, prompt, versions }: PromptClientProps) => {
 
   const fetchRunHistory = useCallback(async () => {
     try {
-      const response = await fetch(`/api/prompts/${id}/runs`)
-      if (response.ok) {
-        const data = await response.json()
-        setRunHistory(data)
+      console.log("Fetching run history for version:", versionId)
+      const response = await fetch(
+        `/api/prompts/${id}/versions/${versionId}/runs`
+      )
+      const data = await response.json()
+
+      if (!response.ok) {
+        console.error("Error response from API:", data)
+        throw new Error(data.error || "Failed to fetch run history")
       }
+
+      console.log("Run history data:", data)
+      setRunHistory(data)
     } catch (error) {
       console.error("Error fetching run history:", error)
+      toast.error(
+        error instanceof Error ? error.message : "Failed to fetch run history"
+      )
     }
-  }, [id])
+  }, [id, versionId])
 
+  // Fetch initial version data and run history
   useEffect(() => {
-    fetchRunHistory()
-  }, [id, fetchRunHistory])
+    const fetchInitialData = async () => {
+      try {
+        // Fetch version details
+        const response = await fetch(`/api/prompts/${id}/versions/${versionId}`)
+        if (!response.ok) {
+          throw new Error("Failed to fetch version details")
+        }
+        const versionData = await response.json()
+
+        // Update version ID if needed
+        if (versionData.id !== versionId) {
+          setVersionId(versionData.id)
+        }
+
+        // Fetch run history
+        await fetchRunHistory()
+      } catch (error) {
+        console.error("Error fetching initial data:", error)
+        toast.error("Failed to fetch initial data")
+      }
+    }
+
+    fetchInitialData()
+  }, [id, versionId, fetchRunHistory])
 
   // Validate form fields
   const validateForm = (): boolean => {
@@ -147,13 +182,32 @@ const PromptClient = ({ id, prompt, versions }: PromptClientProps) => {
   }
 
   // Handle version change
-  const handleVersionChange = (newVersion: string) => {
-    // Find the selected version from versions array
-    const selectedVersion = versions.find((v) => v.version === newVersion)
+  const handleVersionChange = async (newVersion: string) => {
+    try {
+      // Find the selected version from versions array
+      const selectedVersion = versions.find((v) => v.version === newVersion)
 
-    if (selectedVersion) {
-      setVersion(newVersion)
-      setTemplate(selectedVersion.prompt as string)
+      if (selectedVersion) {
+        setVersion(newVersion)
+        setVersionId(selectedVersion.id)
+        setTemplate(selectedVersion.prompt as string)
+
+        // Fetch the version ID from Supabase
+        const response = await fetch(
+          `/api/prompts/${id}/versions/${selectedVersion.id}`
+        )
+        if (!response.ok) {
+          throw new Error("Failed to fetch version details")
+        }
+        const versionData = await response.json()
+
+        // Update version ID and fetch run history for this version
+        setVersionId(versionData.id)
+        fetchRunHistory()
+      }
+    } catch (error) {
+      console.error("Error fetching version details:", error)
+      toast.error("Failed to fetch version details")
     }
   }
 
