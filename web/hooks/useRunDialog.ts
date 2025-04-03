@@ -9,7 +9,7 @@ interface UseRunDialogProps {
 
 export interface RunPromptRequest {
   userID: string
-  promptId: string
+  promptID: string
   provider: string
   model: string
   parameters: Record<string, string>
@@ -29,13 +29,21 @@ export function useRunDialog({ onSuccess }: UseRunDialogProps) {
 
   const handleRunSubmit = async ({
     userID,
-    promptId,
+    promptID,
     provider,
     model,
     parameters,
   }: RunPromptRequest) => {
     setIsLoading(true)
     try {
+      console.log("Running prompt:", {
+        userID,
+        promptID,
+        provider,
+        model,
+        parameters,
+      })
+
       // TODO: Replace with actual API call
       const response = await fetch(`/api/run-prompt`, {
         method: "POST",
@@ -44,7 +52,7 @@ export function useRunDialog({ onSuccess }: UseRunDialogProps) {
         },
         body: JSON.stringify({
           userID,
-          promptId,
+          promptID,
           provider,
           model,
           parameters, // template variables

@@ -64,9 +64,9 @@ export default function RunDialog({
     }
 
     await onRun({
-      userID: "1",
-      promptId: "1",
-      provider: "openai",
+      userID: "e0cbff44-6229-4098-925a-1e8ffc2bc888", // TODO: get user ID from session (currently hardcoded)
+      promptID: promptVersion?.id || "",
+      provider: "OpenAI", // 'OpenAI' or 'Anthropic'
       model,
       parameters: variables,
     })
