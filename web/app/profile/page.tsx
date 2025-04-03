@@ -8,23 +8,22 @@ const supabase = createClient<Database>(
 );
 
 export default async function ProfilePage() {
-  const user = (await supabase.auth.getSession()).data.session?.user;
-    if (!user) {
-      return <div>User not found</div>;
-    }
+  // const user = (await supabase.auth.getSession()).data.session?.user;
+  //   if (!user) {
+  //     return <div>User not found</div>;
+  //   }
 
-    const { data, error } = await supabase.from("Users").select('*').eq("id", user.id).single(); // querry does not work
-    console.log(data);
-    if(error){
-      console.log(error.message);
-      return <div>Error retreiving user data</div>
-    }
+  //   const { data, error } = await supabase.from("Users").select('*').eq("id", user.id).single(); // querry does not work
+  //   console.log(data);
+  //   if(error){
+  //     console.log(error.message);
+  //     return <div>Error retreiving user data</div>
+  //   }
 
-    const profile = data;
-  
+  //   const profile = data;
   return (
     <main style={{ padding: "2rem", fontFamily: "Arial, sans-serif" }}>
-      <ProfilePageClient profile={profile} />
+      <ProfilePageClient  />
     </main>
   );
 }

@@ -1,17 +1,15 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
-import { User } from "@anyprompt/core";
+import { useEffect, useState } from "react";
+import { createClient } from "@supabase/supabase-js";
+import { Database } from "@/database.types";
+import type { User } from "@supabase/supabase-js";
+import { User_custom } from "@anyprompt/core";
 
-
-// for the profile data
-// type Profile = {
-//   id: string;
-//   email: string;
-//   name: string;
-//   avatar_url?: string | null;
-//   api_key?: string | null;
-// };
+const supabase = createClient<Database>(
+  process.env.SUPABASE_URL ?? "",
+  process.env.SUPABASE_ANON_KEY ?? ""
+);
 
 type ApiKeyRecord = {
   id: string;
@@ -20,22 +18,19 @@ type ApiKeyRecord = {
   created_at: string;
 };
 
-interface ProfilePageClientProps {
-  profile: User | null;
-}
+export default function ProfilePageClient() {
+  //used for fetching user
+  const [user, setUser] = useState<User | null>(null); // used to get user of the current session
+  const [profile, setProfile] = useState<User_custom | null>(null); // used for querrying the "Users" table TODO: switch to using the built in User table from supa
 
-export default function ProfilePageClient({ profile }: ProfilePageClientProps) {
-  // State for the API key update form
+  //used for fetching keys
+  const [loading, setLoading] = useState(true);
   const [apiKey, setApiKey] = useState("");
+  const [keys, setKeys] = useState<ApiKeyRecord[]>([]);
+  const [error, setError] = useState("");
   const [provider, setProvider] = useState("");
   const [statusMessage, setStatusMessage] = useState("");
-  const [error, setError] = useState("");
 
-  // State for the list of stored API keys
-  const [keys, setKeys] = useState<ApiKeyRecord[]>([]);
-  const [loading, setLoading] = useState(false);
-
-  // Fetch stored API keys from /api/fetchAPIKeys
   const fetchKeys = async () => {
     setLoading(true);
     try {
@@ -53,12 +48,34 @@ export default function ProfilePageClient({ profile }: ProfilePageClientProps) {
     }
   };
 
-  // Fetch keys on component mount
-  useEffect(() => {
-    fetchKeys();
-  }, []);
+  // get the current user of the session
+  const fetchUser = async () => {
+    const { data } = await supabase.auth.getUser();
+    const current_user = data?.user;
+  
+    setUser(current_user);
 
-  // Handle form submission to store and update an API key
+    // querry the "Users" table
+    if(current_user){
+      const { data: p, error: profileError } = await supabase
+        .from("Users")
+        .select("*")
+        .eq("id", current_user?.id)
+        .single();
+
+        if(profileError){
+          return (<div>Error retrieving profile</div>)
+        }
+        else{
+          setProfile(p);
+        }
+    }
+    else{
+      return (<div>User not logged in</div>)
+    }
+  };
+
+   // Handle form submission to store and update an API key
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setStatusMessage("");
@@ -85,8 +102,16 @@ export default function ProfilePageClient({ profile }: ProfilePageClientProps) {
     }
   };
 
-  if (!profile) {
-    return <div>No profile data found.</div>;
+  useEffect(() => {
+    fetchUser();
+    fetchKeys();
+  }, []);
+
+  if (loading){
+    return <p>Loading...</p>;
+  }
+  if (!user) {
+    return <p>User not found</p>;
   }
 
   return (
@@ -101,9 +126,9 @@ export default function ProfilePageClient({ profile }: ProfilePageClientProps) {
           marginBottom: "2rem",
         }}
       >
-        {profile.avatar_url && (
+        {profile?.avatar_url && (
           <img
-            src={profile.avatar_url}
+            src={profile?.avatar_url}
             alt="Profile Avatar"
             style={{
               width: "100px",
@@ -115,13 +140,13 @@ export default function ProfilePageClient({ profile }: ProfilePageClientProps) {
           />
         )}
         <p>
-          <strong>Name:</strong> {profile.name}
+          <strong>Name:</strong> {profile?.name}
         </p>
         <p>
-          <strong>Email:</strong> {profile.email}
+          <strong>Email:</strong> {profile?.email}
         </p>
         <p>
-          <strong>Current API Key:</strong> {profile.api_key ? profile.api_key : "Not set"}
+          <strong>Current API Key:</strong> {profile?.api_key ? profile?.api_key : "Not set"}
         </p>
       </div>
 
@@ -219,4 +244,5 @@ export default function ProfilePageClient({ profile }: ProfilePageClientProps) {
       </div>
     </div>
   );
+  
 }
