@@ -1,14 +1,34 @@
 "use client"
 
-import React from "react"
+import React, { useState, useEffect } from "react"
 import { Play } from "lucide-react"
 import { Database } from "@/database.types"
+
 interface RunHistoryProps {
   runHistory: Database["public"]["Tables"]["run_history"]["Row"][]
   onRun: () => void
 }
 
+interface RunMetadata {
+  content?: string
+  role?: string
+  [key: string]: any
+}
+
 export default function RunHistory({ runHistory, onRun }: RunHistoryProps) {
+  const [selectedRunId, setSelectedRunId] = useState<string | null>(null)
+
+  // Set initial selected run and update when new runs are available
+  useEffect(() => {
+    if (runHistory.length > 0) {
+      // Always select the first run (newest) since they're ordered by timestamp descending
+      setSelectedRunId(runHistory[0].id)
+    }
+  }, [runHistory])
+
+  const selectedRun = runHistory.find((run) => run.id === selectedRunId)
+  const metadata = selectedRun?.additional_metadata as RunMetadata | undefined
+
   return (
     <div className="flex flex-col">
       <div className="mb-2 text-gray-500 font-dm-mono font-medium">
@@ -16,11 +36,15 @@ export default function RunHistory({ runHistory, onRun }: RunHistoryProps) {
       </div>
       <div className="flex flex-col gap-2 border-2 border-dashed border-gray-200 p-4 flex-grow">
         <div className="flex justify-between items-center">
-          <select className="border-2 border-gray-200 p-1 focus:border-burnt-orange focus:ring-1 focus:ring-burnt-orange outline-none font-dm-mono">
+          <select
+            className="border-2 border-gray-200 p-1 focus:border-burnt-orange focus:ring-1 focus:ring-burnt-orange outline-none font-dm-mono"
+            value={selectedRunId || ""}
+            onChange={(e) => setSelectedRunId(e.target.value)}
+          >
             {runHistory.length > 0 ? (
               runHistory.map((run) => (
                 <option key={run.id} value={run.id}>
-                  {run.model} {new Date(run.created_at).toLocaleString()}
+                  {run.model} {new Date(run.run_timestamp).toLocaleString()}
                 </option>
               ))
             ) : (
@@ -36,20 +60,20 @@ export default function RunHistory({ runHistory, onRun }: RunHistoryProps) {
           </button>
         </div>
 
-        {runHistory.length > 0 ? (
+        {selectedRun ? (
           <div className="mt-4 border-t pt-4">
             <div className="mb-4">
               <div className="border-l-4 border-orange-500 pl-2 mb-2">
                 <h3 className="text-sm font-medium text-gray-600">User</h3>
-                <p className="text-sm">Summarize the following email...</p>
-                <p className="text-sm">EMAIL:</p>
+                <p className="text-sm whitespace-pre-wrap">
+                  {selectedRun.user_prompt || "No input content"}
+                </p>
               </div>
 
               <div className="border-l-4 border-blue-500 pl-2">
                 <h3 className="text-sm font-medium text-gray-600">Assistant</h3>
-                <p className="text-sm">
-                  Sure! Please provide the content of the email you&apos;d like
-                  me to summarize.
+                <p className="text-sm whitespace-pre-wrap">
+                  {selectedRun.run_result}
                 </p>
               </div>
             </div>
