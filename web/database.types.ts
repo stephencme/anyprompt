@@ -109,6 +109,7 @@ export type Database = {
           prompt_version: string
           run_result: string
           run_timestamp: string
+          user_prompt: string
         }
         Insert: {
           additional_metadata: Json
@@ -117,6 +118,7 @@ export type Database = {
           prompt_version: string
           run_result: string
           run_timestamp?: string
+          user_prompt: string
         }
         Update: {
           additional_metadata?: Json
@@ -125,6 +127,7 @@ export type Database = {
           prompt_version?: string
           run_result?: string
           run_timestamp?: string
+          user_prompt?: string
         }
         Relationships: [
           {
