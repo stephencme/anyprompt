@@ -11,6 +11,7 @@ const supabase = createClient<Database>(
   process.env.SUPABASE_ANON_KEY ?? ""
 );
 
+
 type ApiKeyRecord = {
   id: string;
   provider: string;
@@ -45,6 +46,16 @@ export default function ProfilePageClient() {
       setError("An error occurred while fetching API keys.");
     } finally {
       setLoading(false);
+    }
+  };
+
+  //copy API to clipboard feature
+  const copyToClipboard = async (apiKey: string) => {
+    try {
+      await navigator.clipboard.writeText(apiKey);
+      setStatusMessage("API key copied to clipboard!");
+    } catch (err) {
+      setError("Failed to copy API key.");
     }
   };
 
@@ -147,6 +158,21 @@ export default function ProfilePageClient() {
         </p>
         <p>
           <strong>Current API Key:</strong> {profile?.api_key ? profile?.api_key : "Not set"}
+            <button
+              onClick={()=>copyToClipboard(profile.api_key)}
+              style={{
+                marginLeft:"0.5rem",
+                padding: "0.3rem 6rem",
+                backgroundColor: "#4CAF50",
+                color:"white",
+                border:"none",
+                borderRadius: "4px",
+                cursor: "pointer",
+                fontSize: "0.8rem",
+              }}
+              >
+                Copy to Clipboard
+              </button>
         </p>
       </div>
 
