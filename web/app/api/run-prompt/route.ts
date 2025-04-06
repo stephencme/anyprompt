@@ -2,6 +2,7 @@
 import { NextResponse } from "next/server"
 import { createClient } from "@supabase/supabase-js"
 import OpenAI from "openai"
+import Anthropic from "@anthropic-ai/sdk"
 import { decrypt } from "../../../utils/encryption"
 
 // Initialize the Supabase client using your server-side credentials.
@@ -75,19 +76,55 @@ export async function POST(request: Request) {
     // Render the final prompt using the custom templating function.
     const prompt = fillTemplate(templateData.prompt, parameters)
 
-    // Initialize the OpenAI SDK with the user's decrypted API key.
-    const client = new OpenAI({
-      apiKey: decrypted_apiKey,
-    })
+    let generatedText
+    let completion
 
-    // Call the OpenAI API using the SDK.
-    const completion = await client.chat.completions.create({
-      model: model,
-      messages: [{ role: "user", content: prompt }],
-    })
+    if (provider === "OpenAI") {
+      // Initialize the OpenAI SDK with the user's decrypted API key.
+      const client = new OpenAI({
+        apiKey: decrypted_apiKey,
+      })
 
-    // Extract the generated text from the API response.
-    const generatedText = completion.choices?.[0]?.message.content
+      // Call the OpenAI API using the SDK.
+      completion = await client.chat.completions.create({
+        model: model,
+        messages: [{ role: "user", content: prompt }],
+      })
+
+      // Extract the generated text from the API response.
+      generatedText = completion.choices?.[0]?.message.content
+    } else if (provider === "Anthropic") {
+      const anthropic = new Anthropic({
+        apiKey: decrypted_apiKey,
+      })
+
+      completion = await anthropic.messages.create({
+        model: model,
+        max_tokens: 1000,
+        temperature: 1,
+        messages: [
+          {
+            role: "user",
+            content: [
+              {
+                type: "text",
+                text: prompt,
+              },
+            ],
+          },
+        ],
+      })
+
+      generatedText =
+        completion.content[0].type === "text" ? completion.content[0].text : ""
+    }
+
+    if (!completion) {
+      return NextResponse.json(
+        { error: "Failed to get completion from provider" },
+        { status: 500 }
+      )
+    }
 
     // Store the result in the Supabase "run_history" table.
     const { data: resultData, error: insertError } = await supabase
@@ -96,7 +133,10 @@ export async function POST(request: Request) {
         {
           model: model,
           run_result: generatedText,
-          additional_metadata: completion.choices?.[0]?.message,
+          additional_metadata:
+            provider === "OpenAI" && "choices" in completion
+              ? completion.choices?.[0]?.message
+              : completion,
           prompt_version: templateData.id,
           user_prompt: prompt,
         },
@@ -112,7 +152,12 @@ export async function POST(request: Request) {
 
     // Return the generated message to the client.
     return NextResponse.json(
-      { result: completion.choices[0].message },
+      {
+        result:
+          completion && provider === "OpenAI" && "choices" in completion
+            ? completion.choices[0].message
+            : completion,
+      },
       { status: 200 }
     )
   } catch (err) {
