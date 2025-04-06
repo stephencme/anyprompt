@@ -1,6 +1,6 @@
 "use client"
 
-import React, { useState } from "react"
+import React, { useState, useMemo, useEffect } from "react"
 import { Loader2 } from "lucide-react"
 import {
   Dialog,
@@ -21,7 +21,12 @@ import {
 import { RunPromptRequest } from "@/hooks/useRunDialog"
 import { Database } from "@/database.types"
 
-const models = ["gpt-4o", "gpt-4o-mini", "gpt-3.5-turbo", "claude-3-5-sonnet"]
+// const providerModels = {
+//   OpenAI: ["gpt-4o", "gpt-4o-mini", "gpt-3.5-turbo"],
+//   Anthropic: ["claude-3-haiku-20240307", "claude-3-5-sonnet"],
+// }
+
+const providers = ["OpenAI", "Anthropic"]
 
 interface RunDialogProps {
   isOpen: boolean
@@ -47,7 +52,38 @@ export default function RunDialog({
 }: RunDialogProps) {
   const [variables, setVariables] = useState<Record<string, string>>({})
   const [error, setError] = useState<string>("")
-  const [model, setModel] = useState<string>("gpt-4o")
+  const [model, setModel] = useState<string>("")
+  const [provider, setProvider] = useState<string>("OpenAI")
+  const [availableModels, setAvailableModels] = useState<string[]>([])
+  const [isLoadingModels, setIsLoadingModels] = useState(false)
+
+  // Fetch models when provider changes
+  useEffect(() => {
+    const fetchModels = async () => {
+      setIsLoadingModels(true)
+      try {
+        const response = await fetch(
+          `/api/models?userId=e0cbff44-6229-4098-925a-1e8ffc2bc888&provider=${provider}`
+        )
+        const data = await response.json()
+        if (response.ok) {
+          setAvailableModels(data.models)
+          // Set the first model as default if no model is selected
+          if (!model || !data.models.includes(model)) {
+            setModel(data.models[0])
+          }
+        } else {
+          console.error("Failed to fetch models:", data.error)
+        }
+      } catch (error) {
+        console.error("Error fetching models:", error)
+      } finally {
+        setIsLoadingModels(false)
+      }
+    }
+
+    fetchModels()
+  }, [provider])
 
   // Handle form submission
   const handleSubmit = async (e: React.FormEvent) => {
@@ -66,13 +102,13 @@ export default function RunDialog({
     await onRun({
       userID: "e0cbff44-6229-4098-925a-1e8ffc2bc888", // TODO: get user ID from session (currently hardcoded)
       promptID: promptVersion?.id || "",
-      provider: "OpenAI", // 'OpenAI' or 'Anthropic'
+      provider,
       model,
       parameters: variables,
     })
   }
 
-  if (!prompt || !templateVariables) {
+  if (!promptVersion || !templateVariables) {
     return null
   }
 
@@ -128,7 +164,7 @@ export default function RunDialog({
             <button
               type="submit"
               className="bg-burnt-orange px-4 py-2 hover:bg-burnt-orange-dark text-white rounded-none flex items-center justify-center gap-2 font-bold"
-              disabled={isLoading}
+              disabled={isLoading || isLoadingModels}
             >
               {isLoading ? (
                 <Loader2 className="h-4 w-4 animate-spin" />
@@ -137,18 +173,40 @@ export default function RunDialog({
               )}
               Generate output
             </button>
-            <Select value={model} onValueChange={setModel}>
+            <Select value={provider} onValueChange={setProvider}>
               <SelectTrigger className="w-fit gap-x-2 rounded-none">
-                <SelectValue placeholder="Model" className="font-dm-mono" />
+                <SelectValue placeholder="Provider" className="font-dm-mono" />
               </SelectTrigger>
               <SelectContent>
-                {models.map((model, idx) => (
+                {providers.map((p) => (
                   <SelectItem
-                    key={`${model}-${idx}`}
-                    value={model}
+                    key={p}
+                    value={p}
                     className="font-dm-mono text-sm"
                   >
-                    {model}
+                    {p}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <Select
+              value={model}
+              onValueChange={setModel}
+              disabled={isLoadingModels}
+            >
+              <SelectTrigger className="w-fit gap-x-2 rounded-none">
+                <SelectValue placeholder="Model" className="font-dm-mono">
+                  {isLoadingModels ? "Loading..." : model}
+                </SelectValue>
+              </SelectTrigger>
+              <SelectContent>
+                {availableModels.map((m) => (
+                  <SelectItem
+                    key={m}
+                    value={m}
+                    className="font-dm-mono text-sm"
+                  >
+                    {m}
                   </SelectItem>
                 ))}
               </SelectContent>
