@@ -3,22 +3,6 @@
 import { Merriweather } from "next/font/google"
 import { Libre_Franklin } from "next/font/google"
 import { DM_Mono } from "next/font/google"
-import PromptCard from "@/components/PromptCard"
-import { Plus } from "lucide-react"
-import Link from "next/link"
-import { PromptVersion } from "@/types/prompts"
-
-type PromptWithVersions = {
-  id: string
-  name: string
-  description: string
-  created_at: string
-  updated_at: string
-  versions: PromptVersion[]
-}
-interface PromptsPageClientProps {
-  prompts: PromptWithVersions[]
-}
 
 const merriweather = Merriweather({
   weight: ["400", "700", "900"],
@@ -47,7 +31,7 @@ const librefranklin = Libre_Franklin({
 // 800	  font-extrabold
 // 900	  font-black
 
-export default function PromptsPageClient({ prompts }: PromptsPageClientProps) {
+export default function SettingsPageClient() {
   return (
     <div className={`min-h-screen bg-[#fdfaf3] pt-7 pl-[32px] pr-[32px] text-[#222]`}>
   <h1 className={`text-2xl font-black mb-2 ${merriweather.className}`}>Settings</h1>
