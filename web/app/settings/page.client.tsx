@@ -49,10 +49,10 @@ export default function SettingsPageClient() {
 
   const router = useRouter(); //for page redirection
 
-  const [loading, setLoading] = useState(true);
+  // const [loading, setLoading] = useState(true);
   const [keys, setKeys] = useState<APIKeys>();
-  const [error, setError] = useState("");
-  const [statusMessage, setStatusMessage] = useState("");
+  // const [error, setError] = useState("");
+  // const [statusMessage, setStatusMessage] = useState("");
 
     // get the current user of the session
     const fetchUser = async () => {
@@ -76,9 +76,6 @@ export default function SettingsPageClient() {
             setProfile(p);
           }
       }
-      else{
-        return (<div>User not logged in</div>)
-      }
     };
 
     const fetchKeys = async () => {
@@ -89,12 +86,23 @@ export default function SettingsPageClient() {
           .eq("user_id", profile.id);
     
         if (error) {
-          setError(error.message);
+          // setError(error.message);
         } else {
-          //TODO: map each provider and their keys
+          var openai_key = null;
+          var anthropic_key = null;
+
+          for(var i = 0 ; i < keys.length; ++i){
+            if(keys.at(i) && keys.at(i)?.provider == "OpenAI"){
+              openai_key = keys.at(i)?.encrypted_api_key ?? null; //maybe decrypt this?
+            }
+            else if(keys.at(i)?.provider == "Anthropic"){
+              anthropic_key = keys.at(i)?.encrypted_api_key ?? null; //maybe decrypt this?
+            }
+          }
+
           const api_keys: APIKeys = {
-            openai: null,
-            anthropic: null,
+            openai: openai_key,
+            anthropic: anthropic_key,
           }
           setKeys(api_keys);
         }
@@ -106,7 +114,7 @@ export default function SettingsPageClient() {
         };
         setKeys(noKeys);
       }
-      setLoading(false);
+      // setLoading(false);
     }
 
     // TODO
@@ -124,11 +132,13 @@ export default function SettingsPageClient() {
     fetchKeys();
   }, []);
 
-  if (loading){
-    return <p>Loading...</p>;
-  }
+  // if (loading){
+  //   return <p>Loading...</p>;
+  // }
+
+  //make this pretty?
   if (!user) {
-    return <p>User not found</p>;
+    return <p>User not logged in</p>;
   }
 
   // Weight	Class
