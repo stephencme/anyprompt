@@ -22,6 +22,13 @@ import {
 import { RunPromptRequest } from "@/hooks/useRunDialog"
 import { Database } from "@/database.types"
 
+import { createClient } from "@supabase/supabase-js"
+
+const supabase = createClient<Database>(
+  process.env.SUPABASE_URL!,
+  process.env.SUPABASE_ANON_KEY!
+)
+
 // const providerModels = {
 //   OpenAI: ["gpt-4o", "gpt-4o-mini", "gpt-3.5-turbo"],
 //   Anthropic: ["claude-3-haiku-20240307", "claude-3-5-sonnet"],
@@ -59,18 +66,30 @@ export default function RunDialog({
   const [isLoadingModels, setIsLoadingModels] = useState(false)
   const [user, setUser] = useState<User | null>(null)
 
+  // Fetch current user
+  useEffect(() => {
+    const fetchUser = async () => {
+      const { data } = await supabase.auth.getUser()
+      const current_user = data?.user
+      setUser(current_user)
+    }
+    fetchUser()
+  }, [])
+
   // Fetch models when provider changes
   useEffect(() => {
     const fetchModels = async () => {
+      if (!user?.id) return // Don't fetch if no user
+
       setIsLoadingModels(true)
       try {
+        console.log("Fetching models for user:", user.id)
         const response = await fetch(
-          `/api/models?userId=${user?.id}&provider=${provider}` // Need to have a valid api key for the user
+          `/api/models?userId=${user.id}&provider=${provider}`
         )
         const data = await response.json()
         if (response.ok) {
           setAvailableModels(data.models)
-          // Set the first model as default if no model is selected
           if (!model || !data.models.includes(model)) {
             setModel(data.models[0])
           }
@@ -85,7 +104,7 @@ export default function RunDialog({
     }
 
     fetchModels()
-  }, [provider])
+  }, [provider, user?.id])
 
   // Handle form submission
   const handleSubmit = async (e: React.FormEvent) => {
@@ -101,8 +120,13 @@ export default function RunDialog({
       return
     }
 
+    if (!user?.id) {
+      setError("User not authenticated")
+      return
+    }
+
     await onRun({
-      userID: user?.id || "", // Provide empty string as fallback
+      userID: user.id,
       promptID: promptVersion?.id || "",
       provider,
       model,
