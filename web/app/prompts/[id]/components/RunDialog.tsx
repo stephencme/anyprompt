@@ -1,6 +1,7 @@
 "use client"
 
 import React, { useState, useMemo, useEffect } from "react"
+import type { User } from "@supabase/supabase-js"
 import { Loader2 } from "lucide-react"
 import {
   Dialog,
@@ -56,6 +57,7 @@ export default function RunDialog({
   const [provider, setProvider] = useState<string>("OpenAI")
   const [availableModels, setAvailableModels] = useState<string[]>([])
   const [isLoadingModels, setIsLoadingModels] = useState(false)
+  const [user, setUser] = useState<User | null>(null)
 
   // Fetch models when provider changes
   useEffect(() => {
@@ -63,7 +65,7 @@ export default function RunDialog({
       setIsLoadingModels(true)
       try {
         const response = await fetch(
-          `/api/models?userId=e0cbff44-6229-4098-925a-1e8ffc2bc888&provider=${provider}`
+          `/api/models?userId=${user?.id}&provider=${provider}` // Need to have a valid api key for the user
         )
         const data = await response.json()
         if (response.ok) {
@@ -100,7 +102,7 @@ export default function RunDialog({
     }
 
     await onRun({
-      userID: "e0cbff44-6229-4098-925a-1e8ffc2bc888", // TODO: get user ID from session (currently hardcoded)
+      userID: user?.id || "", // Provide empty string as fallback
       promptID: promptVersion?.id || "",
       provider,
       model,
