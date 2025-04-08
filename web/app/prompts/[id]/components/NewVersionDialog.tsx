@@ -34,7 +34,7 @@ export default function NewVersionDialog({
   }
 
   const [newVersion, setNewVersion] = useState<string>(
-    generateSuggestedVersion()
+    generateSuggestedVersion(),
   )
   const [error, setError] = useState<string>("")
 

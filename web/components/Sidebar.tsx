@@ -14,6 +14,21 @@ const merriweather = Merriweather({
 const Sidebar = () => {
   const pathname = usePathname()
 
+  const noSidebarRoutes = [
+    "/login",
+    "/signup",
+    "/forgot-password",
+    "/reset-password",
+  ]
+
+  const shouldShowSidebar = !noSidebarRoutes.some((route) =>
+    pathname?.startsWith(route),
+  )
+
+  if (!shouldShowSidebar) {
+    return null
+  }
+
   return (
     <div className="flex flex-col gap-4 pr-8 py-8 bg-cream-darker text-navy">
       <Image
@@ -28,7 +43,7 @@ const Sidebar = () => {
         className={`p-2 min-w-[264px] pl-8 ${
           merriweather.className
         } transition-colors duration-300 hover:bg-cream-hover ${
-          pathname === "/prompts" || pathname === "/prompts/new"
+          pathname.startsWith("/prompts")
             ? "text-burnt-orange bg-cream-hover"
             : ""
         }`}
@@ -40,7 +55,9 @@ const Sidebar = () => {
         className={`p-2 pl-8 min-w-[264px] ${
           merriweather.className
         } transition-colors duration-300 hover:bg-cream-hover ${
-          pathname === "/settings" ? "text-burnt-orange bg-cream-hover" : ""
+          pathname.startsWith("/settings")
+            ? "text-burnt-orange bg-cream-hover"
+            : ""
         }`}
       >
         Settings

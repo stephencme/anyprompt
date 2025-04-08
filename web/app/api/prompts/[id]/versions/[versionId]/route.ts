@@ -1,15 +1,9 @@
-import { createClient } from "@supabase/supabase-js"
-import { Database } from "@/database.types"
+import { supabase } from "@/lib/supabase"
 import { NextResponse } from "next/server"
-
-const supabase = createClient<Database>(
-  process.env.SUPABASE_URL ?? "",
-  process.env.SUPABASE_ANON_KEY ?? ""
-)
 
 export async function GET(
   request: Request,
-  { params }: { params: { id: string; versionId: string } }
+  { params }: { params: { id: string; versionId: string } },
 ) {
   try {
     const { id: promptId, versionId } = params
@@ -25,7 +19,7 @@ export async function GET(
       console.error("Error fetching version:", error)
       return NextResponse.json(
         { error: "Failed to fetch version details" },
-        { status: 500 }
+        { status: 500 },
       )
     }
 
@@ -38,7 +32,7 @@ export async function GET(
     console.error("Unexpected error:", error)
     return NextResponse.json(
       { error: "An unexpected error occurred" },
-      { status: 500 }
+      { status: 500 },
     )
   }
 }

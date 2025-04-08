@@ -1,15 +1,9 @@
-import { createClient } from "@supabase/supabase-js"
-import { Database } from "@/database.types"
+import { supabase } from "@/lib/supabase"
 import { NextResponse } from "next/server"
-
-const supabase = createClient<Database>(
-  process.env.SUPABASE_URL ?? "",
-  process.env.SUPABASE_ANON_KEY ?? ""
-)
 
 export async function POST(
   request: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: { id: string } },
 ) {
   try {
     const promptId = params.id
@@ -20,7 +14,7 @@ export async function POST(
     if (!version || !prompt) {
       return NextResponse.json(
         { error: "Missing required fields" },
-        { status: 400 }
+        { status: 400 },
       )
     }
 
@@ -35,7 +29,7 @@ export async function POST(
     if (existingVersion) {
       return NextResponse.json(
         { error: "Version already exists" },
-        { status: 400 }
+        { status: 400 },
       )
     }
 
@@ -57,7 +51,7 @@ export async function POST(
       console.error("Error creating prompt version:", error)
       return NextResponse.json(
         { error: "Failed to create prompt version" },
-        { status: 500 }
+        { status: 500 },
       )
     }
 
@@ -66,7 +60,7 @@ export async function POST(
     console.error("Unexpected error:", error)
     return NextResponse.json(
       { error: "An unexpected error occurred" },
-      { status: 500 }
+      { status: 500 },
     )
   }
 }

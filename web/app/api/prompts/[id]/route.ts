@@ -1,15 +1,9 @@
-import { createClient } from "@supabase/supabase-js"
-import { Database } from "@/database.types"
+import { supabase } from "@/lib/supabase"
 import { NextResponse } from "next/server"
-
-const supabase = createClient<Database>(
-  process.env.SUPABASE_URL ?? "",
-  process.env.SUPABASE_ANON_KEY ?? ""
-)
 
 export async function DELETE(
   request: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: { id: string } },
 ) {
   try {
     const promptId = params.id
@@ -24,7 +18,7 @@ export async function DELETE(
       console.error("Error deleting prompt versions:", versionsError)
       return NextResponse.json(
         { error: "Failed to delete prompt versions" },
-        { status: 500 }
+        { status: 500 },
       )
     }
 
@@ -38,7 +32,7 @@ export async function DELETE(
       console.error("Error deleting prompt:", promptError)
       return NextResponse.json(
         { error: "Failed to delete prompt" },
-        { status: 500 }
+        { status: 500 },
       )
     }
 
@@ -47,7 +41,7 @@ export async function DELETE(
     console.error("Unexpected error:", error)
     return NextResponse.json(
       { error: "An unexpected error occurred" },
-      { status: 500 }
+      { status: 500 },
     )
   }
 }
@@ -55,7 +49,7 @@ export async function DELETE(
 // We'll also need a PUT endpoint for updating prompts
 export async function PUT(
   request: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: { id: string } },
 ) {
   try {
     const promptId = params.id
@@ -66,7 +60,7 @@ export async function PUT(
     if (!name || !template || !version) {
       return NextResponse.json(
         { error: "Missing required fields" },
-        { status: 400 }
+        { status: 400 },
       )
     }
 
@@ -80,7 +74,7 @@ export async function PUT(
       console.error("Error updating prompt:", promptError)
       return NextResponse.json(
         { error: "Failed to update prompt" },
-        { status: 500 }
+        { status: 500 },
       )
     }
 
@@ -106,7 +100,7 @@ export async function PUT(
         console.error("Error updating prompt version:", versionError)
         return NextResponse.json(
           { error: "Failed to update prompt version" },
-          { status: 500 }
+          { status: 500 },
         )
       }
     } else {
@@ -126,7 +120,7 @@ export async function PUT(
         console.error("Error creating prompt version:", versionError)
         return NextResponse.json(
           { error: "Failed to create prompt version" },
-          { status: 500 }
+          { status: 500 },
         )
       }
     }
@@ -136,7 +130,7 @@ export async function PUT(
     console.error("Unexpected error:", error)
     return NextResponse.json(
       { error: "An unexpected error occurred" },
-      { status: 500 }
+      { status: 500 },
     )
   }
 }

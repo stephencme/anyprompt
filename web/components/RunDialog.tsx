@@ -1,7 +1,6 @@
 "use client"
 
-import React, { useState, useMemo, useEffect } from "react"
-import type { User } from "@supabase/supabase-js"
+import React, { useState, useEffect } from "react"
 import { Loader2 } from "lucide-react"
 import {
   Dialog,
@@ -19,15 +18,8 @@ import {
   SelectContent,
   SelectItem,
 } from "@/components/ui/select"
-import { RunPromptRequest } from "@/hooks/useRunDialog"
-import { Database } from "@/database.types"
-
-import { createClient } from "@supabase/supabase-js"
-
-const supabase = createClient<Database>(
-  process.env.SUPABASE_URL!,
-  process.env.SUPABASE_ANON_KEY!
-)
+import { useRunDialogContext } from "@/context/RunDialogContext"
+import { useAuth } from "@/context/AuthContext"
 
 // const providerModels = {
 //   OpenAI: ["gpt-4o", "gpt-4o-mini", "gpt-3.5-turbo"],
@@ -36,45 +28,86 @@ const supabase = createClient<Database>(
 
 const providers = ["OpenAI", "Anthropic"]
 
-interface RunDialogProps {
-  isOpen: boolean
-  onClose: () => void
-  onRun: (request: RunPromptRequest) => Promise<void>
-  promptVersion: Database["public"]["Tables"]["prompt_version"]["Row"] | null
-  templateVariables?: string[]
-  isLoading: boolean
-}
-
 const merriweather = Merriweather({
   weight: "700",
   subsets: ["latin"],
 })
 
-export default function RunDialog({
-  isOpen,
-  onClose,
-  onRun,
-  promptVersion,
-  templateVariables = [],
-  isLoading,
-}: RunDialogProps) {
+const handleRun = async ({
+  userID,
+  promptID,
+  provider,
+  model,
+  parameters,
+  setError,
+  setResult,
+}: {
+  setError: (error: string) => void
+  setResult: (result: string) => void
+  userID: string
+  promptID: string
+  provider: string
+  model: string
+  parameters: Record<string, string>
+}) => {
+  setError("")
+
+  // Basic validation.
+  if (!userID || !promptID || !provider || !model) {
+    setError(
+      "Please fill in all standalone fields (userID, promptID, provider, model).",
+    )
+    return
+  }
+  if (Object.keys(parameters).length === 0) {
+    setError("Please provide at least one template parameter.")
+    return
+  }
+
+  try {
+    // Ensure that the API endpoint URL matches your API route.
+    const response = await fetch("/api/run-prompt", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        userID,
+        promptID,
+        provider,
+        model,
+        parameters, // Used for prompt template replacement.
+      }),
+    })
+
+    // Read and parse the JSON response.
+    const data = await response.json()
+    if (!response.ok) {
+      setError(data.error || "An error occurred.")
+    } else {
+      setResult(data.result)
+    }
+  } catch (err: unknown) {
+    if (err instanceof Error) {
+      setError(err.message || "An unexpected error occurred.")
+    } else {
+      setError("An unexpected error occurred.")
+    }
+  }
+}
+
+export default function RunDialog() {
+  const { isOpen, setIsOpen, promptVersion, templateVariables } =
+    useRunDialogContext()
+
   const [variables, setVariables] = useState<Record<string, string>>({})
   const [error, setError] = useState<string>("")
   const [model, setModel] = useState<string>("")
   const [provider, setProvider] = useState<string>("OpenAI")
   const [availableModels, setAvailableModels] = useState<string[]>([])
   const [isLoadingModels, setIsLoadingModels] = useState(false)
-  const [user, setUser] = useState<User | null>(null)
-
-  // Fetch current user
-  useEffect(() => {
-    const fetchUser = async () => {
-      const { data } = await supabase.auth.getUser()
-      const current_user = data?.user
-      setUser(current_user)
-    }
-    fetchUser()
-  }, [])
+  const [isLoading, setIsLoading] = useState(false)
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const [result, setResult] = useState<string>("")
+  const { user } = useAuth()
 
   // Fetch models when provider changes
   useEffect(() => {
@@ -83,36 +116,38 @@ export default function RunDialog({
 
       setIsLoadingModels(true)
       try {
-        console.log("Fetching models for user:", user.id)
         const response = await fetch(
-          `/api/models?userId=${user.id}&provider=${provider}`
+          `/api/models?userId=${user.id}&provider=${provider}`,
         )
         const data = await response.json()
+
         if (response.ok) {
           setAvailableModels(data.models)
           if (!model || !data.models.includes(model)) {
             setModel(data.models[0])
           }
         } else {
-          console.error("Failed to fetch models:", data.error)
+          // toast.error(`Failed to fetch models for ${provider}`)
         }
-      } catch (error) {
-        console.error("Error fetching models:", error)
+      } catch {
+        // toast.error(`Error fetching models: ${error}`)
       } finally {
         setIsLoadingModels(false)
       }
     }
 
     fetchModels()
-  }, [provider, user?.id])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user?.id])
 
   // Handle form submission
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
 
+    setIsLoading(true)
     // Validate all variables are filled
     const missingVariables = templateVariables.filter(
-      (variable) => !variables[variable]
+      (variable) => !variables[variable],
     )
 
     if (missingVariables.length > 0) {
@@ -125,13 +160,16 @@ export default function RunDialog({
       return
     }
 
-    await onRun({
+    await handleRun({
       userID: user.id,
       promptID: promptVersion?.id || "",
       provider,
       model,
       parameters: variables,
+      setError,
+      setResult,
     })
+    setIsLoading(false)
   }
 
   if (!promptVersion || !templateVariables) {
@@ -139,7 +177,7 @@ export default function RunDialog({
   }
 
   return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
+    <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogContent className="p-4">
         <DialogHeader>
           <DialogTitle
@@ -180,7 +218,7 @@ export default function RunDialog({
               className="w-full h-24 p-2 outline-none border-2 border-gray-200 bg-cream font-dm-mono"
               value={promptVersion?.prompt?.replace(
                 /{{([^{}]+)}}/g,
-                (match, p1) => variables[p1] || `{{${p1}}}`
+                (match, p1) => variables[p1] || `{{${p1}}}`,
               )}
               readOnly
             />
@@ -190,7 +228,7 @@ export default function RunDialog({
             <button
               type="submit"
               className="bg-burnt-orange px-4 py-2 hover:bg-burnt-orange-dark text-white rounded-none flex items-center justify-center gap-2 font-bold"
-              disabled={isLoading || isLoadingModels}
+              disabled={isLoadingModels}
             >
               {isLoading ? (
                 <Loader2 className="h-4 w-4 animate-spin" />

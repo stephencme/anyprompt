@@ -1,62 +1,61 @@
-"use client";
+"use client"
 
-import { useState } from "react";
-import { createClient } from "@supabase/supabase-js";
-import { LoginTemplate } from "@anyprompt/core";
-import { useRouter } from "next/navigation";
-import { Database } from "@/database.types";
-import Link from "next/link";
-import Image from "next/image";
-import { Libre_Franklin, DM_Mono } from "next/font/google";
+import { useState } from "react"
+import { useRouter } from "next/navigation"
+import Link from "next/link"
+import Image from "next/image"
+import { Libre_Franklin, DM_Mono } from "next/font/google"
+import { useAuth } from "@/context/AuthContext"
+import { supabase } from "@/lib/supabase"
 
 // Apply the fonts
 const libreFranklin = Libre_Franklin({
   subsets: ["latin"],
   weight: "400", // You can adjust the weight as needed
-});
+})
 
 const dmMono = DM_Mono({
   subsets: ["latin"],
   weight: "400", // You can adjust the weight as needed
-});
-
-const supabase = createClient<Database>(
-  process.env.SUPABASE_URL ?? "https://qcuruxudpkctlyrvagyy.supabase.co",
-  process.env.SUPABASE_ANON_KEY ?? "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFjdXJ1eHVkcGtjdGx5cnZhZ3l5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Mzg5MDQzNTcsImV4cCI6MjA1NDQ4MDM1N30.igQTnslj7wYbdy6BD8z3YZipLATdvQh1URO3-ewq1EI"
-);
+})
 
 export default function LoginPageClient() {
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [error, setError] = useState<string | null>(null);
+  const [email, setEmail] = useState("")
+  const [password, setPassword] = useState("")
+  const [error, setError] = useState<string | null>(null)
 
-  const router = useRouter(); //for page redirection
+  const router = useRouter() //for page redirection
+  const { setUser } = useAuth()
 
   const handleLogin = async () => {
-    setError(null);
+    setError(null)
 
     // Log in the user with Supabase Authentication and set session to the user
-    const { error } = await supabase.auth.signInWithPassword({
+    const { data, error } = await supabase.auth.signInWithPassword({
       email,
       password,
-    });
+    })
 
     if (error) {
-      setError(error.message);
-      return;
+      setError(error.message)
+      return
+    }
+
+    if (data) {
+      setUser(data.user)
     }
 
     //after login, redirect user to the prompts page
     router.push("/prompts")
-  };
-  
+  }
+
   // FRONTEND DO WORK HERE:
   return (
     <div className="flex flex-col items-center justify-center min-h-screen bg-[#FFFDF3] p-10">
       <div
-      className="bg-white border border-[#E7E6DF] w-[480px] min-h-[256px] p-6 shadow-md overflow-hidden mb-4"
-      style={{ borderWidth: "1px" }}
-    >
+        className="bg-white border border-[#E7E6DF] w-[480px] min-h-[256px] p-6 shadow-md overflow-hidden mb-4"
+        style={{ borderWidth: "1px" }}
+      >
         <div className="mb-4 text-left">
           <Image
             src="/Logo.svg"
@@ -115,18 +114,26 @@ export default function LoginPageClient() {
         </div>
       </div>
       <div className="flex justify-center text-[#6D717B] text-[13px] leading-[15.76px] space-x-4">
-      <Link href="https://github.com/stephencme/anyprompt" target="_blank" className="hover:underline">
-        GitHub
-      </Link>
-      <span>|</span>
-      <Link href="#" target="_blank" className="hover:underline">
-        Report an issue
-      </Link>
-      <span>|</span>
-      <Link href="https://github.com/stephencme/anyprompt/blob/main/CONTRIBUTING.md" target="_blank" className="hover:underline">
-        Contribute
-      </Link>
+        <Link
+          href="https://github.com/stephencme/anyprompt"
+          target="_blank"
+          className="hover:underline"
+        >
+          GitHub
+        </Link>
+        <span>|</span>
+        <Link href="#" target="_blank" className="hover:underline">
+          Report an issue
+        </Link>
+        <span>|</span>
+        <Link
+          href="https://github.com/stephencme/anyprompt/blob/main/CONTRIBUTING.md"
+          target="_blank"
+          className="hover:underline"
+        >
+          Contribute
+        </Link>
+      </div>
     </div>
-    </div>
-  );
+  )
 }

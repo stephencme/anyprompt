@@ -59,7 +59,7 @@ export default function PromptHeader({
     } catch (error) {
       console.error("Error deleting prompt:", error)
       toast.error(
-        error instanceof Error ? error.message : "Failed to delete prompt"
+        error instanceof Error ? error.message : "Failed to delete prompt",
       )
     } finally {
       setIsDeleting(false)
@@ -96,7 +96,7 @@ export default function PromptHeader({
     } catch (error) {
       console.error("Error duplicating prompt:", error)
       toast.error(
-        error instanceof Error ? error.message : "Failed to duplicate prompt"
+        error instanceof Error ? error.message : "Failed to duplicate prompt",
       )
     } finally {
       setIsDuplicating(false)

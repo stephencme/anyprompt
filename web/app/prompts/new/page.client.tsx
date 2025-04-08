@@ -4,7 +4,9 @@ import React, { useState } from "react"
 import { useRouter } from "next/navigation"
 import { merriweather } from "@/app/fonts"
 import Link from "next/link"
-import { Play, X } from "lucide-react"
+import { Play, X, Loader2 } from "lucide-react"
+import { useAuth } from "@/context/AuthContext"
+import { redirect } from "next/navigation"
 
 const NewPromptClient = () => {
   const router = useRouter()
@@ -20,6 +22,7 @@ const NewPromptClient = () => {
     description?: string
     general?: string
   }>({})
+  const { user, isAuthLoading } = useAuth()
 
   // Extract template variables from the template
   const extractTemplateVariables = (templateText: string): string[] => {
@@ -103,7 +106,18 @@ const NewPromptClient = () => {
 
   const handleRun = async () => {
     // TODO: Implement run functionality
-    console.log("Running prompt:", { name: promptName, version, template })
+  }
+
+  if (isAuthLoading) {
+    return (
+      <div className="flex items-center justify-center h-screen">
+        <Loader2 className="animate-spin" />
+      </div>
+    )
+  }
+
+  if (!user) {
+    redirect("/login")
   }
 
   return (

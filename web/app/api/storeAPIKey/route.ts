@@ -1,12 +1,7 @@
 // app/api/store-key/route.ts
 import { NextResponse } from "next/server"
 import { encrypt } from "../../../utils/encryption"
-import { createClient } from "@supabase/supabase-js"
-
-// Initialize the Supabase client using your server-side credentials.
-const supabaseUrl = process.env.SUPABASE_URL!
-const supabaseServiceKey = process.env.SUPABASE_ANON_KEY!
-const supabase = createClient(supabaseUrl, supabaseServiceKey)
+import { supabase } from "@/lib/supabase"
 
 export async function POST(request: Request) {
   try {
@@ -15,14 +10,14 @@ export async function POST(request: Request) {
     if (!apiKey || typeof apiKey !== "string") {
       return NextResponse.json(
         { error: "API key is required and must be a string." },
-        { status: 400 }
+        { status: 400 },
       )
     }
 
     if (!userId || typeof userId !== "string") {
       return NextResponse.json(
         { error: "User ID is required and must be a string." },
-        { status: 400 }
+        { status: 400 },
       )
     }
 
@@ -50,7 +45,7 @@ export async function POST(request: Request) {
     console.error("Error storing API key:", err)
     return NextResponse.json(
       { error: "Failed to store API key." },
-      { status: 500 }
+      { status: 500 },
     )
   }
 }

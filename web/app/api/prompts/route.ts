@@ -1,12 +1,5 @@
-import { createClient } from "@supabase/supabase-js"
-import { Database } from "@/database.types"
 import { NextResponse } from "next/server"
-
-// Initialize Supabase client with server-side credentials
-const supabase = createClient<Database>(
-  process.env.SUPABASE_URL ?? "",
-  process.env.SUPABASE_ANON_KEY ?? ""
-)
+import { supabase } from "@/lib/supabase"
 
 export async function GET() {
   try {
@@ -19,7 +12,7 @@ export async function GET() {
       console.error("Error fetching prompts:", promptsError)
       return NextResponse.json(
         { error: "Failed to fetch prompts" },
-        { status: 500 }
+        { status: 500 },
       )
     }
 
@@ -35,7 +28,7 @@ export async function GET() {
         if (versionsError) {
           console.error(
             `Error fetching versions for prompt ${prompt.id}:`,
-            versionsError
+            versionsError,
           )
           return {
             ...prompt,
@@ -51,7 +44,7 @@ export async function GET() {
             template_variables: v.template_variables,
           })),
         }
-      })
+      }),
     )
 
     return NextResponse.json(promptsWithVersions)
@@ -59,7 +52,7 @@ export async function GET() {
     console.error("Unexpected error:", error)
     return NextResponse.json(
       { error: "An unexpected error occurred" },
-      { status: 500 }
+      { status: 500 },
     )
   }
 }
@@ -73,7 +66,7 @@ export async function POST(request: Request) {
     if (!name || !template || !version) {
       return NextResponse.json(
         { error: "Missing required fields" },
-        { status: 400 }
+        { status: 400 },
       )
     }
 
@@ -88,7 +81,7 @@ export async function POST(request: Request) {
       console.error("Error creating prompt:", promptError)
       return NextResponse.json(
         { error: "Failed to create prompt" },
-        { status: 500 }
+        { status: 500 },
       )
     }
 
@@ -108,7 +101,7 @@ export async function POST(request: Request) {
       console.error("Error creating prompt version:", versionError)
       return NextResponse.json(
         { error: "Failed to create prompt version" },
-        { status: 500 }
+        { status: 500 },
       )
     }
 
@@ -117,7 +110,7 @@ export async function POST(request: Request) {
     console.error("Unexpected error:", error)
     return NextResponse.json(
       { error: "An unexpected error occurred" },
-      { status: 500 }
+      { status: 500 },
     )
   }
 }

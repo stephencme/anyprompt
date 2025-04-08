@@ -3,33 +3,89 @@
 import React, { useState, useEffect, useCallback } from "react"
 import { toast } from "sonner"
 import { Database } from "@/database.types"
-import { useRunDialog } from "@/hooks/useRunDialog"
 import { extractTemplateVariables } from "@/lib/utils"
 
 import PromptHeader from "./components/PromptHeader"
 import PromptEditor from "./components/PromptEditor"
 import RunHistory from "./components/RunHistory"
 import NewVersionDialog from "./components/NewVersionDialog"
-import RunDialog from "./components/RunDialog"
-
+import { redirect } from "next/navigation"
+import { useAuth } from "@/context/AuthContext"
+import { Loader2 } from "lucide-react"
+import { supabase } from "@/lib/supabase"
+import { useRunDialogContext } from "@/context/RunDialogContext"
 interface PromptClientProps {
   id: string
-  prompt: Database["public"]["Tables"]["prompts"]["Row"]
-  versions: Database["public"]["Tables"]["prompt_version"]["Row"][]
 }
 
-const PromptClient = ({ id, prompt, versions }: PromptClientProps) => {
+const PromptClient = ({ id }: PromptClientProps) => {
+  const [loading, setLoading] = useState<boolean>(true)
+  const [prompt, setPrompt] = useState<
+    Database["public"]["Tables"]["prompts"]["Row"]
+  >({} as Database["public"]["Tables"]["prompts"]["Row"])
+  const [versions, setVersions] = useState<
+    Database["public"]["Tables"]["prompt_version"]["Row"][]
+  >([])
+  const { user, isAuthLoading } = useAuth()
+
+  useEffect(() => {
+    const fetchPrompt = async () => {
+      if (isAuthLoading) {
+        return
+      }
+
+      if (!user) {
+        redirect("/login")
+      }
+
+      // Fetch the prompt data with the validated id
+      const { data: promptData, error: promptError } = await supabase
+        .from("prompts")
+        .select("*")
+        .eq("id", id)
+        .single()
+
+      const { data: versionData, error: versionsError } = await supabase
+        .from("prompt_version")
+        .select("*")
+        .eq("prompt_id", id)
+        .order("created_at", { ascending: false })
+
+      if (promptError || !promptData) {
+        console.error("Error fetching prompt:", promptError)
+        return redirect("/prompts")
+      }
+
+      if (versionsError || !versionData) {
+        console.error("Error fetching versions:", versionsError)
+        return redirect("/prompts")
+      }
+
+      if (!promptData) {
+        console.error("Prompt not found")
+        return redirect("/prompts")
+      }
+
+      setPrompt(promptData)
+      setVersions(versionData)
+      setVersion(versionData[0].version as string)
+      setVersionId(versionData[0].id)
+      setTemplate(versionData[0].prompt as string)
+      setTemplateVariables(versionData[0].template_variables as string[])
+      setDescription(promptData.description || "")
+      setLoading(false)
+    }
+
+    fetchPrompt()
+  }, [id, user, isAuthLoading])
+
   // To do: allow users to edit prompt name
   const [promptName] = useState<string>(prompt.name)
-  const [version, setVersion] = useState<string>(versions[0].version as string)
-  const [versionId, setVersionId] = useState<string>(versions[0].id)
-  const [template, setTemplate] = useState<string>(versions[0].prompt as string)
-  const [templateVariables, setTemplateVariables] = useState<string[]>(
-    versions[0].template_variables as string[]
-  )
-  const [description, setDescription] = useState<string>(
-    prompt.description || ""
-  )
+  const [version, setVersion] = useState<string>("")
+  const [versionId, setVersionId] = useState<string>("")
+  const [template, setTemplate] = useState<string>("")
+  const [templateVariables, setTemplateVariables] = useState<string[]>([])
+  const [description, setDescription] = useState<string>("")
   const [isLoading, setIsLoading] = useState<boolean>(false)
   const [isCreatingVersion, setIsCreatingVersion] = useState<boolean>(false)
   const [errors, setErrors] = useState<{
@@ -46,25 +102,15 @@ const PromptClient = ({ id, prompt, versions }: PromptClientProps) => {
     useState<boolean>(false)
 
   const {
-    isOpen: runDialogOpen,
-    isLoading: isRunning,
-    handleRun,
-    handleClose: handleRunDialogClose,
-    handleRunSubmit: handleRunSubmit,
-  } = useRunDialog({
-    promptId: id,
-    version,
-    onSuccess: () => {
-      // Refresh run history after successful run
-      fetchRunHistory()
-    },
-  })
+    setIsOpen,
+    setTemplateVariables: setRunDialogTemplateVariables,
+    setPromptVersion: setRunDialogPromptVersion,
+  } = useRunDialogContext()
 
   const fetchRunHistory = useCallback(async () => {
     try {
-      console.log("Fetching run history for version:", versionId)
       const response = await fetch(
-        `/api/prompts/${id}/versions/${versionId}/runs`
+        `/api/prompts/${id}/versions/${versionId}/runs`,
       )
       const data = await response.json()
 
@@ -73,42 +119,14 @@ const PromptClient = ({ id, prompt, versions }: PromptClientProps) => {
         throw new Error(data.error || "Failed to fetch run history")
       }
 
-      console.log("Run history data:", data)
       setRunHistory(data)
     } catch (error) {
       console.error("Error fetching run history:", error)
       toast.error(
-        error instanceof Error ? error.message : "Failed to fetch run history"
+        error instanceof Error ? error.message : "Failed to fetch run history",
       )
     }
   }, [id, versionId])
-
-  // Fetch initial version data and run history
-  useEffect(() => {
-    const fetchInitialData = async () => {
-      try {
-        // Fetch version details
-        const response = await fetch(`/api/prompts/${id}/versions/${versionId}`)
-        if (!response.ok) {
-          throw new Error("Failed to fetch version details")
-        }
-        const versionData = await response.json()
-
-        // Update version ID if needed
-        if (versionData.id !== versionId) {
-          setVersionId(versionData.id)
-        }
-
-        // Fetch run history
-        await fetchRunHistory()
-      } catch (error) {
-        console.error("Error fetching initial data:", error)
-        toast.error("Failed to fetch initial data")
-      }
-    }
-
-    fetchInitialData()
-  }, [id, versionId, fetchRunHistory])
 
   // Validate form fields
   const validateForm = (): boolean => {
@@ -174,7 +192,7 @@ const PromptClient = ({ id, prompt, versions }: PromptClientProps) => {
       })
       // Show error toast
       toast.error(
-        error instanceof Error ? error.message : "Failed to save prompt"
+        error instanceof Error ? error.message : "Failed to save prompt",
       )
     } finally {
       setIsLoading(false)
@@ -194,7 +212,7 @@ const PromptClient = ({ id, prompt, versions }: PromptClientProps) => {
 
         // Fetch the version ID from Supabase
         const response = await fetch(
-          `/api/prompts/${id}/versions/${selectedVersion.id}`
+          `/api/prompts/${id}/versions/${selectedVersion.id}`,
         )
         if (!response.ok) {
           throw new Error("Failed to fetch version details")
@@ -246,11 +264,19 @@ const PromptClient = ({ id, prompt, versions }: PromptClientProps) => {
             : "Failed to create new version. Please try again.",
       })
       toast.error(
-        error instanceof Error ? error.message : "Failed to create new version"
+        error instanceof Error ? error.message : "Failed to create new version",
       )
     } finally {
       setIsCreatingVersion(false)
     }
+  }
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-screen">
+        <Loader2 className="animate-spin" />
+      </div>
+    )
   }
 
   return (
@@ -291,7 +317,16 @@ const PromptClient = ({ id, prompt, versions }: PromptClientProps) => {
         </div>
 
         <div className="col-span-1">
-          <RunHistory runHistory={runHistory} onRun={handleRun} />
+          <RunHistory
+            runHistory={runHistory}
+            onRun={() => {
+              setRunDialogTemplateVariables(templateVariables)
+              setRunDialogPromptVersion(
+                versions.find((v) => v.version === version) || null,
+              )
+              setIsOpen(true)
+            }}
+          />
         </div>
       </div>
 
@@ -301,15 +336,6 @@ const PromptClient = ({ id, prompt, versions }: PromptClientProps) => {
         onCreateVersion={handleCreateNewVersion}
         currentVersion={version}
         isLoading={isCreatingVersion}
-      />
-
-      <RunDialog
-        isOpen={runDialogOpen}
-        onClose={handleRunDialogClose}
-        onRun={handleRunSubmit}
-        promptVersion={versions.find((v) => v.version === version) || null}
-        templateVariables={templateVariables}
-        isLoading={isRunning}
       />
     </div>
   )

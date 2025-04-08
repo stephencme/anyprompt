@@ -1,75 +1,77 @@
-"use client";
-import { useState, useEffect, FormEvent } from "react";
+"use client"
 
+import { useState, useEffect, FormEvent } from "react"
 interface ApiKeyRecord {
-  id: string;
-  provider: string;
-  masked_api_key: string;
-  created_at: string;
+  id: string
+  provider: string
+  masked_api_key: string
+  created_at: string
 }
 
 export default function StoreKeyPage() {
   // Form state for storing a new API key.
-  const [apiKey, setApiKey] = useState("");
-  const [provider, setProvider] = useState("");
-  const [message, setMessage] = useState("");
-  const [error, setError] = useState("");
+  const [apiKey, setApiKey] = useState("")
+  const [provider, setProvider] = useState("")
+  const [message, setMessage] = useState("")
+  const [error, setError] = useState("")
 
   // State for the list of stored keys.
-  const [keys, setKeys] = useState<ApiKeyRecord[]>([]);
-  const [loading, setLoading] = useState(false);
+  const [keys, setKeys] = useState<ApiKeyRecord[]>([])
+  const [loading, setLoading] = useState(false)
 
   // Handle form submission for storing an API key.
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    setMessage("");
-    setError("");
+    e.preventDefault()
+    setMessage("")
+    setError("")
 
     try {
       const response = await fetch("/api/storeAPIKey", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ apiKey, provider }),
-      });
+      })
 
-      const data = await response.json();
+      const data = await response.json()
       if (!response.ok) {
-        setError(data.error || "Failed to store API key.");
+        setError(data.error || "Failed to store API key.")
       } else {
-        setMessage("API key stored successfully!");
+        setMessage("API key stored successfully!")
         // Clear form inputs.
-        setApiKey("");
-        setProvider("");
+        setApiKey("")
+        setProvider("")
         // Refresh the list of stored keys.
-        fetchKeys();
+        fetchKeys()
       }
     } catch (err) {
-      setError("An error occurred while storing the API key.");
+      setError("An error occurred while storing the API key.")
+      console.error("Error storing API key:", err)
     }
-  };
+  }
 
   // Fetch all stored API keys.
   const fetchKeys = async () => {
-    setLoading(true);
+    setLoading(true)
     try {
-      const response = await fetch("/api/fetchAPIKeys");
-      const data = await response.json();
+      const response = await fetch("/api/fetchAPIKeys")
+      const data = await response.json()
       if (!response.ok) {
-        setError(data.error || "Failed to fetch API keys.");
+        setError(data.error || "Failed to fetch API keys.")
       } else {
-        setKeys(data.keys);
+        setKeys(data.keys)
       }
     } catch (err) {
-      setError("An error occurred while fetching API keys.");
+      setError("An error occurred while fetching API keys.")
+      console.error("Error fetching API keys:", err)
     } finally {
-      setLoading(false);
+      setLoading(false)
     }
-  };
+  }
 
   // Fetch keys on component mount.
   useEffect(() => {
-    fetchKeys();
-  }, []);
+    fetchKeys()
+  }, [])
 
   return (
     <div style={{ padding: "20px" }}>
@@ -143,5 +145,5 @@ export default function StoreKeyPage() {
         </table>
       )}
     </div>
-  );
+  )
 }

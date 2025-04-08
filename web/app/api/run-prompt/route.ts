@@ -1,19 +1,14 @@
 // app/api/run-prompt/route.ts
 import { NextResponse } from "next/server"
-import { createClient } from "@supabase/supabase-js"
 import OpenAI from "openai"
 import Anthropic from "@anthropic-ai/sdk"
 import { decrypt } from "../../../utils/encryption"
-
-// Initialize the Supabase client using your server-side credentials.
-const supabaseUrl = process.env.SUPABASE_URL!
-const supabaseServiceKey = process.env.SUPABASE_ANON_KEY!
-const supabase = createClient(supabaseUrl, supabaseServiceKey)
+import { supabase } from "@/lib/supabase"
 
 // A simple function that replaces {{key}} with its corresponding value from parameters.
 function fillTemplate(
   template: string,
-  parameters: Record<string, string>
+  parameters: Record<string, string>,
 ): string {
   let result = template
   for (const [key, value] of Object.entries(parameters)) {
@@ -28,19 +23,13 @@ export async function POST(request: Request) {
     const { userID, promptID, provider, model, parameters } =
       await request.json()
 
-    console.log("userID", userID)
-    console.log("promptID", promptID)
-    console.log("provider", provider)
-    console.log("model", model)
-    console.log("parameters", parameters)
-
     if (!userID || !promptID || !provider || !model || !parameters) {
       return NextResponse.json(
         {
           error:
             "Missing required fields: userID, promptID, provider, model, parameters",
         },
-        { status: 400 }
+        { status: 400 },
       )
     }
 
@@ -55,7 +44,7 @@ export async function POST(request: Request) {
     if (apiKeyError || !apiKeyData) {
       return NextResponse.json(
         { error: "User API key not found" },
-        { status: 404 }
+        { status: 404 },
       )
     }
 
@@ -69,7 +58,7 @@ export async function POST(request: Request) {
       .eq("id", promptID)
       .single()
 
-    if (templateError || !templateData) {
+    if (templateError || !templateData || !templateData.prompt) {
       return NextResponse.json({ error: "Template not found" }, { status: 404 })
     }
 
@@ -122,31 +111,30 @@ export async function POST(request: Request) {
     if (!completion) {
       return NextResponse.json(
         { error: "Failed to get completion from provider" },
-        { status: 500 }
+        { status: 500 },
       )
     }
 
+    const additional_metadata = JSON.stringify(
+      provider === "OpenAI" && "choices" in completion
+        ? completion.choices?.[0]?.message
+        : completion,
+    )
+
     // Store the result in the Supabase "run_history" table.
-    const { data: resultData, error: insertError } = await supabase
-      .from("run_history")
-      .insert([
-        {
-          model: model,
-          run_result: generatedText,
-          additional_metadata:
-            provider === "OpenAI" && "choices" in completion
-              ? completion.choices?.[0]?.message
-              : completion,
-          prompt_version: templateData.id,
-          user_prompt: prompt,
-        },
-      ])
+    const { error: insertError } = await supabase.from("run_history").insert({
+      model: model,
+      run_result: generatedText || "",
+      additional_metadata,
+      prompt_version: templateData.id,
+      user_prompt: prompt,
+    })
 
     if (insertError) {
       console.error("Insert error details:", insertError)
       return NextResponse.json(
         { error: "Failed to store result in database" },
-        { status: 500 }
+        { status: 500 },
       )
     }
 
@@ -158,13 +146,13 @@ export async function POST(request: Request) {
             ? completion.choices[0].message
             : completion,
       },
-      { status: 200 }
+      { status: 200 },
     )
   } catch (err) {
     console.error("Error running prompt:", err)
     return NextResponse.json(
       { error: "Internal server error" },
-      { status: 500 }
+      { status: 500 },
     )
   }
 }

@@ -1,65 +1,76 @@
-"use client";
-import { useState, FormEvent } from "react";
+"use client"
+
+import { useState, FormEvent } from "react"
+import { useAuth } from "@/context/AuthContext"
+import { redirect } from "next/navigation"
 
 export default function EncryptDecryptPage() {
   // Encryption state
-  const [encryptInput, setEncryptInput] = useState("");
-  const [encrypted, setEncrypted] = useState("");
-  const [encryptError, setEncryptError] = useState("");
+  const [encryptInput, setEncryptInput] = useState("")
+  const [encrypted, setEncrypted] = useState("")
+  const [encryptError, setEncryptError] = useState("")
 
   // Decryption state
-  const [decryptInput, setDecryptInput] = useState("");
-  const [decrypted, setDecrypted] = useState("");
-  const [decryptError, setDecryptError] = useState("");
+  const [decryptInput, setDecryptInput] = useState("")
+  const [decrypted, setDecrypted] = useState("")
+  const [decryptError, setDecryptError] = useState("")
 
   const handleEncryptSubmit = async (e: FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    setEncryptError("");
-    setEncrypted("");
+    e.preventDefault()
+    setEncryptError("")
+    setEncrypted("")
 
     try {
       const response = await fetch("/api/encrypt", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ message: encryptInput }),
-      });
-      const data = await response.json();
+      })
+      const data = await response.json()
       if (!response.ok) {
-        setEncryptError(data.error || "Encryption failed.");
+        setEncryptError(data.error || "Encryption failed.")
       } else {
-        setEncrypted(data.encrypted);
+        setEncrypted(data.encrypted)
       }
-    } catch (err) {
-      setEncryptError("An error occurred.");
+    } catch (error) {
+      setEncryptError("An error occurred.")
+      console.error("Encryption error:", error)
     }
-  };
+  }
 
   const handleDecryptSubmit = async (e: FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    setDecryptError("");
-    setDecrypted("");
+    e.preventDefault()
+    setDecryptError("")
+    setDecrypted("")
 
     try {
       const response = await fetch("/api/decrypt", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ encrypted: decryptInput }),
-      });
-      const data = await response.json();
+      })
+      const data = await response.json()
       if (!response.ok) {
-        setDecryptError(data.error || "Decryption failed.");
+        setDecryptError(data.error || "Decryption failed.")
       } else {
-        setDecrypted(data.decrypted);
+        setDecrypted(data.decrypted)
       }
-    } catch (err) {
-      setDecryptError("An error occurred.");
+    } catch (error) {
+      setDecryptError("An error occurred.")
+      console.error("Decryption error:", error)
     }
-  };
+  }
+
+  const { user, isAuthLoading } = useAuth()
+
+  if (!user && !isAuthLoading) {
+    redirect("/login")
+  }
 
   return (
     <div style={{ padding: "20px" }}>
       <h1>Encryption and Decryption</h1>
-      
+
       {/* Encryption Section */}
       <div style={{ marginBottom: "40px" }}>
         <h2>Encrypt a Message</h2>
@@ -89,7 +100,7 @@ export default function EncryptDecryptPage() {
           </div>
         )}
       </div>
-      
+
       {/* Decryption Section */}
       <div>
         <h2>Decrypt a Message</h2>
@@ -120,5 +131,5 @@ export default function EncryptDecryptPage() {
         )}
       </div>
     </div>
-  );
+  )
 }

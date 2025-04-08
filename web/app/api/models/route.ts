@@ -1,13 +1,8 @@
 import { NextResponse } from "next/server"
-import { createClient } from "@supabase/supabase-js"
 import OpenAI from "openai"
 import Anthropic from "@anthropic-ai/sdk"
 import { decrypt } from "@/utils/encryption"
-
-const supabase = createClient(
-  process.env.SUPABASE_URL!,
-  process.env.SUPABASE_ANON_KEY!
-)
+import { supabase } from "@/lib/supabase"
 
 export async function GET(request: Request) {
   try {
@@ -18,7 +13,7 @@ export async function GET(request: Request) {
     if (!userId || !provider) {
       return NextResponse.json(
         { error: "Missing required parameters" },
-        { status: 400 }
+        { status: 400 },
       )
     }
 
@@ -62,7 +57,7 @@ export async function GET(request: Request) {
     console.error("Error fetching models:", error)
     return NextResponse.json(
       { error: "Failed to fetch models" },
-      { status: 500 }
+      { status: 500 },
     )
   }
 }

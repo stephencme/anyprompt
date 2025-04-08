@@ -4,6 +4,9 @@ import "./globals.css"
 import Sidebar from "@/components/Sidebar"
 import { dmMono, merriweather } from "./fonts"
 import { Toaster } from "sonner"
+import { AuthProvider } from "@/context/AuthContext"
+import { RunDialogProvider } from "@/context/RunDialogContext"
+import RunDialog from "@/components/RunDialog"
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -31,13 +34,18 @@ export default function RootLayout({
       className={`${geistSans.variable} ${geistMono.variable} ${dmMono.variable} ${merriweather.variable} antialiased`}
     >
       <body>
-        <div className="min-h-screen flex flex-col">
-          <div className="flex-1 flex">
-            <Sidebar />
-            <main className="flex-1">{children}</main>
-          </div>
-        </div>
-        <Toaster position="top-right" />
+        <AuthProvider>
+          <RunDialogProvider>
+            <div className="min-h-screen flex flex-col">
+              <div className="flex-1 flex">
+                <Sidebar />
+                <main className="flex-1">{children}</main>
+                <RunDialog />
+              </div>
+            </div>
+            <Toaster position="top-right" />
+          </RunDialogProvider>
+        </AuthProvider>
       </body>
     </html>
   )

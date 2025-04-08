@@ -1,21 +1,16 @@
 "use client"
 
 import { useEffect, useState } from "react"
-import { createClient } from "@supabase/supabase-js"
 import { Database } from "@/database.types"
-import type { User } from "@supabase/supabase-js"
-import { User_custom } from "@anyprompt/core"
 import { useRouter } from "next/navigation"
 import { toast } from "sonner"
-
+import { useAuth } from "@/context/AuthContext"
 import { Merriweather } from "next/font/google"
 import { Libre_Franklin } from "next/font/google"
 import { DM_Mono } from "next/font/google"
-
-const supabase = createClient<Database>(
-  process.env.SUPABASE_URL ?? "",
-  process.env.SUPABASE_ANON_KEY ?? ""
-)
+import { Loader2 } from "lucide-react"
+import { redirect } from "next/navigation"
+import { supabase } from "@/lib/supabase"
 
 const merriweather = Merriweather({
   weight: ["400", "700", "900"],
@@ -40,8 +35,10 @@ type APIKeys = {
 const providers = ["OpenAI", "Anthropic"]
 
 export default function SettingsPageClient() {
-  const [user, setUser] = useState<User | null>(null)
-  const [profile, setProfile] = useState<User_custom | null>(null)
+  const { user, setUser, isAuthLoading } = useAuth()
+  const [profile, setProfile] = useState<
+    Database["public"]["Tables"]["Users"]["Row"] | null
+  >(null)
   const router = useRouter()
   const [keys, setKeys] = useState<APIKeys>()
   const [apiKeys, setApiKeys] = useState<Record<string, string>>({})
@@ -70,6 +67,7 @@ export default function SettingsPageClient() {
 
   const fetchKeys = async () => {
     if (profile) {
+      setIsLoading(true)
       try {
         const response = await fetch(`/api/fetchAPIKeys?userId=${profile.id}`)
         if (!response.ok) {
@@ -77,27 +75,26 @@ export default function SettingsPageClient() {
         }
         const data = await response.json()
 
-        console.log("API Keys Response:", data)
-
-        var openai_key = null
-        var anthropic_key = null
+        let openai_key = null
+        let anthropic_key = null
 
         if (data.keys && Array.isArray(data.keys)) {
-          data.keys.forEach((key: any) => {
-            if (key.provider === "OpenAI") {
-              openai_key = key.masked_api_key
-            }
-            if (key.provider === "Anthropic") {
-              anthropic_key = key.masked_api_key
-            }
-          })
+          data.keys.forEach(
+            (key: Database["public"]["Tables"]["user_api_keys"]["Row"]) => {
+              if (key.provider === "OpenAI") {
+                openai_key = key.encrypted_api_key
+              }
+              if (key.provider === "Anthropic") {
+                anthropic_key = key.encrypted_api_key
+              }
+            },
+          )
         }
 
         const api_keys: APIKeys = {
           openai: openai_key,
           anthropic: anthropic_key,
         }
-        console.log("Setting API keys:", api_keys)
         setKeys(api_keys)
       } catch (error) {
         console.error("Error fetching API keys:", error)
@@ -109,7 +106,7 @@ export default function SettingsPageClient() {
 
   const handleSignOut = async () => {
     await supabase.auth.signOut()
-    router.push("/login")
+    setUser(null)
   }
 
   const handlePasswordChange = async () => {
@@ -132,7 +129,7 @@ export default function SettingsPageClient() {
         body: JSON.stringify({
           provider,
           apiKey,
-          userId: profile.id,
+          userId: profile?.id,
         }),
       })
 
@@ -154,13 +151,27 @@ export default function SettingsPageClient() {
 
   useEffect(() => {
     fetchUser()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   useEffect(() => {
     if (profile) {
       fetchKeys()
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [profile])
+
+  if (!user && !isAuthLoading) {
+    redirect("/login")
+  }
+
+  if (isAuthLoading || isLoading) {
+    return (
+      <div className="flex items-center justify-center h-screen">
+        <Loader2 className="animate-spin" />
+      </div>
+    )
+  }
 
   return (
     <div
