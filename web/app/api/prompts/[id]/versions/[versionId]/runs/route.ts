@@ -3,10 +3,10 @@ import { supabase } from "@/lib/supabase"
 
 export async function GET(
   request: Request,
-  { params }: { params: { id: string; versionId: string } },
+  context: { params: { id: string; versionId: string } },
 ) {
   try {
-    const { id: promptId, versionId } = params
+    const { id: promptId, versionId } = context.params
 
     // First verify that the version belongs to this prompt
     const { data: version, error: versionError } = await supabase
