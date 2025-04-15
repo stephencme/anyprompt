@@ -3,10 +3,10 @@ import { NextResponse } from "next/server"
 
 export async function GET(
   request: Request,
-  { params }: { params: { id: string; versionId: string } },
+  context: { params: { id: string; versionId: string } },
 ) {
   try {
-    const { id: promptId, versionId } = params
+    const { id: promptId, versionId } = context.params
 
     const { data: version, error } = await supabase
       .from("prompt_version")
