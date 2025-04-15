@@ -87,13 +87,13 @@ Server Error
     Error: supabaseUrl is required.
 ```
 
-To resolve the issue please visit [database.new](https://database.new/) and follow the instructions to create a new self-hosted Supabase project. Once a project is created please create a file named `.env.local` under the `anyprompt/web` folder. Then add the `SUPABASE_URL` and `SUPABASE_ANON_KEY` of the newly created Supabase project to the `.env.local` file.
+To resolve the issue please visit [database.new](https://database.new/) and follow the instructions to create a new self-hosted Supabase project. Once a project is created please create a file named `.env.local` under the `anyprompt/web` folder. Then add the `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_ANON_KEY` of the newly created Supabase project to the `.env.local` file.
 
 Example of `.env.local` content:
 
 ```shell
-SUPABASE_URL=https://SOMETHING.supabase.co
-SUPABASE_ANON_KEY=eyJhbGXVCJ9.eyJpcIA1NDQ4MDM1N30.igQTnwq1EI
+NEXT_PUBLIC_SUPABASE_URL=https://SOMETHING.supabase.co
+NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJhbGXVCJ9.eyJpcIA1NDQ4MDM1N30.igQTnwq1EI
 ```
 
 The issue should then be solved.
