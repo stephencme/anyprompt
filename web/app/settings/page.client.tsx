@@ -75,20 +75,18 @@ export default function SettingsPageClient() {
         }
         const data = await response.json()
 
-        let openai_key = null
-        let anthropic_key = null
+        var openai_key = null
+        var anthropic_key = null
 
         if (data.keys && Array.isArray(data.keys)) {
-          data.keys.forEach(
-            (key: Database["public"]["Tables"]["user_api_keys"]["Row"]) => {
-              if (key.provider === "OpenAI") {
-                openai_key = key.encrypted_api_key
-              }
-              if (key.provider === "Anthropic") {
-                anthropic_key = key.encrypted_api_key
-              }
-            },
-          )
+          data.keys.forEach((key: any) => {
+            if (key.provider === "OpenAI") {
+              openai_key = key.masked_api_key
+            }
+            if (key.provider === "Anthropic") {
+              anthropic_key = key.masked_api_key
+            }
+          })
         }
 
         const api_keys: APIKeys = {
@@ -100,8 +98,8 @@ export default function SettingsPageClient() {
         console.error("Error fetching API keys:", error)
         toast.error("Failed to fetch API keys")
       }
+      setIsLoading(false)
     }
-    setIsLoading(false)
   }
 
   const handleSignOut = async () => {
@@ -113,8 +111,21 @@ export default function SettingsPageClient() {
     // TODO: Implement password change
   }
 
-  const handleSave = async (provider: string, apiKey: string) => {
-    if (!apiKey.trim()) {
+  const handleInputChange = (provider: string, value: string) => {
+    setApiKeys((prev) => ({
+      ...prev,
+      [provider]: value,
+    }))
+  }
+
+  const handleSave = async (provider: string) => {
+    const apiKey = apiKeys[provider]
+    if (!profile?.id) {
+      toast.error("User not authenticated")
+      return
+    }
+
+    if (!apiKey?.trim()) {
       toast.error("API key cannot be empty")
       return
     }
@@ -129,7 +140,7 @@ export default function SettingsPageClient() {
         body: JSON.stringify({
           provider,
           apiKey,
-          userId: profile?.id,
+          userId: profile.id,
         }),
       })
 
@@ -137,10 +148,13 @@ export default function SettingsPageClient() {
         throw new Error("Failed to save API key")
       }
 
-      const data = await response.json()
-      setApiKeys((prev) => ({ ...prev, [provider]: data.encryptedKey }))
-      toast.success(`${provider} API key saved successfully`)
-      fetchKeys() // Refresh the displayed keys
+      // Clear the input after successful save
+      setApiKeys((prev) => ({ ...prev, [provider]: "" }))
+
+      // Refresh the displayed keys
+      await fetchKeys()
+
+      toast.success(`${provider} API key updated successfully`)
     } catch (error) {
       console.error("Error saving API key:", error)
       toast.error("Failed to save API key")
@@ -292,17 +306,14 @@ export default function SettingsPageClient() {
                       type="password"
                       className="flex-1 p-2 border rounded-md"
                       placeholder={`Enter your ${provider} API key`}
+                      value={apiKeys[provider] || ""}
                       onChange={(e) =>
-                        setApiKeys((prev) => ({
-                          ...prev,
-                          [provider]: e.target.value,
-                        }))
+                        handleInputChange(provider, e.target.value)
                       }
-                      value={apiKeys[provider] ? "••••••••" : ""}
                     />
                     <button
-                      onClick={() => handleSave(provider, apiKeys[provider])}
-                      disabled={isSaving}
+                      onClick={() => handleSave(provider)}
+                      disabled={isSaving || !apiKeys[provider]?.trim()}
                       className="px-4 py-2 bg-burnt-orange text-white rounded-md hover:bg-burnt-orange-dark disabled:opacity-50"
                     >
                       {isSaving ? "Saving..." : "Save"}

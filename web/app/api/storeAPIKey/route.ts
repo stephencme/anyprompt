@@ -7,44 +7,61 @@ export async function POST(request: Request) {
   try {
     const { apiKey, provider, userId } = await request.json()
 
-    if (!apiKey || typeof apiKey !== "string") {
-      return NextResponse.json(
-        { error: "API key is required and must be a string." },
-        { status: 400 },
-      )
-    }
-
+    // Validate required fields
     if (!userId || typeof userId !== "string") {
       return NextResponse.json(
-        { error: "User ID is required and must be a string." },
+        { error: "Invalid or missing user ID" },
         { status: 400 },
       )
     }
 
-    // Encrypt the API key using your encryption function.
+    if (!apiKey || typeof apiKey !== "string") {
+      return NextResponse.json(
+        { error: "Invalid or missing API key" },
+        { status: 400 },
+      )
+    }
+
+    if (!provider || typeof provider !== "string") {
+      return NextResponse.json(
+        { error: "Invalid or missing provider" },
+        { status: 400 },
+      )
+    }
+
+    // Encrypt the API key
     const encryptedKey = encrypt(apiKey)
 
-    // Insert the encrypted API key and provider into Supabase.
-    // If your schema requires a user_id, you can either omit it if allowed
-    // or insert a default value (like null or a placeholder).
-    const { data, error } = await supabase.from("user_api_keys").insert([
-      {
-        user_id: userId,
-        provider: provider,
-        encrypted_api_key: encryptedKey,
-      },
-    ]) // Need changing for user auth
+    // Check if a key already exists for this user and provider
+    const { data: existingKey } = await supabase
+      .from("user_api_keys")
+      .select("id")
+      .eq("user_id", userId)
+      .eq("provider", provider)
+      .single()
+
+    // Update or insert the API key
+    const { error } = await supabase.from("user_api_keys").upsert({
+      id: existingKey?.id, // Include the ID if it exists for update
+      user_id: userId,
+      provider: provider,
+      encrypted_api_key: encryptedKey,
+      updated_at: new Date().toISOString(),
+    })
 
     if (error) {
       console.error("Error storing API key:", error)
-      return NextResponse.json({ error: error.message }, { status: 500 })
+      return NextResponse.json(
+        { error: "Failed to store API key" },
+        { status: 500 },
+      )
     }
 
-    return NextResponse.json({ data }, { status: 200 })
-  } catch (err) {
-    console.error("Error storing API key:", err)
+    return NextResponse.json({ success: true })
+  } catch (error) {
+    console.error("Error in storeAPIKey:", error)
     return NextResponse.json(
-      { error: "Failed to store API key." },
+      { error: "Internal server error" },
       { status: 500 },
     )
   }
