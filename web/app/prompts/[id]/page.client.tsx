@@ -14,6 +14,8 @@ import { useAuth } from "@/context/AuthContext"
 import { Loader2 } from "lucide-react"
 import { supabase } from "@/lib/supabase"
 import { useRunDialogContext } from "@/context/RunDialogContext"
+import RunDialog from "@/components/RunDialog"
+
 interface PromptClientProps {
   id: string
 }
@@ -27,6 +29,62 @@ const PromptClient = ({ id }: PromptClientProps) => {
     Database["public"]["Tables"]["prompt_version"]["Row"][]
   >([])
   const { user, isAuthLoading } = useAuth()
+
+  // To do: allow users to edit prompt name
+  const [promptName] = useState<string>(prompt.name)
+  const [version, setVersion] = useState<string>("")
+  const [versionId, setVersionId] = useState<string>("")
+  const [template, setTemplate] = useState<string>("")
+  const [templateVariables, setTemplateVariables] = useState<string[]>([])
+  const [description, setDescription] = useState<string>("")
+  const [isLoading, setIsLoading] = useState<boolean>(false)
+  const [isCreatingVersion, setIsCreatingVersion] = useState<boolean>(false)
+  const [errors, setErrors] = useState<{
+    name?: string
+    version?: string
+    template?: string
+    description?: string
+    general?: string
+  }>({})
+  const [runHistory, setRunHistory] = useState<
+    Database["public"]["Tables"]["run_history"]["Row"][]
+  >([])
+  const [newVersionDialogOpen, setNewVersionDialogOpen] =
+    useState<boolean>(false)
+
+  const {
+    setIsOpen,
+    setTemplateVariables: setRunDialogTemplateVariables,
+    setPromptVersion: setRunDialogPromptVersion,
+  } = useRunDialogContext()
+
+  const fetchRunHistory = useCallback(async () => {
+    try {
+      if (!versionId) {
+        console.log("No versionId available, skipping run history fetch")
+        return
+      }
+
+      console.log("Fetching run history for version:", versionId)
+      const response = await fetch(
+        `/api/prompts/${id}/versions/${versionId}/runs`,
+      )
+      const data = await response.json()
+      console.log("Run history response:", data)
+
+      if (!response.ok) {
+        console.error("Error response from API:", data)
+        throw new Error(data.error || "Failed to fetch run history")
+      }
+
+      setRunHistory(data)
+    } catch (error) {
+      console.error("Error fetching run history:", error)
+      toast.error(
+        error instanceof Error ? error.message : "Failed to fetch run history",
+      )
+    }
+  }, [id, versionId])
 
   useEffect(() => {
     const fetchPrompt = async () => {
@@ -74,59 +132,16 @@ const PromptClient = ({ id }: PromptClientProps) => {
       setTemplateVariables(versionData[0].template_variables as string[])
       setDescription(promptData.description || "")
       setLoading(false)
+
+      // Fetch run history for the initial version
+      if (versionData[0].id) {
+        console.log("Initial version ID:", versionData[0].id)
+        fetchRunHistory()
+      }
     }
 
     fetchPrompt()
-  }, [id, user, isAuthLoading])
-
-  // To do: allow users to edit prompt name
-  const [promptName] = useState<string>(prompt.name)
-  const [version, setVersion] = useState<string>("")
-  const [versionId, setVersionId] = useState<string>("")
-  const [template, setTemplate] = useState<string>("")
-  const [templateVariables, setTemplateVariables] = useState<string[]>([])
-  const [description, setDescription] = useState<string>("")
-  const [isLoading, setIsLoading] = useState<boolean>(false)
-  const [isCreatingVersion, setIsCreatingVersion] = useState<boolean>(false)
-  const [errors, setErrors] = useState<{
-    name?: string
-    version?: string
-    template?: string
-    description?: string
-    general?: string
-  }>({})
-  const [runHistory, setRunHistory] = useState<
-    Database["public"]["Tables"]["run_history"]["Row"][]
-  >([])
-  const [newVersionDialogOpen, setNewVersionDialogOpen] =
-    useState<boolean>(false)
-
-  const {
-    setIsOpen,
-    setTemplateVariables: setRunDialogTemplateVariables,
-    setPromptVersion: setRunDialogPromptVersion,
-  } = useRunDialogContext()
-
-  const fetchRunHistory = useCallback(async () => {
-    try {
-      const response = await fetch(
-        `/api/prompts/${id}/versions/${versionId}/runs`,
-      )
-      const data = await response.json()
-
-      if (!response.ok) {
-        console.error("Error response from API:", data)
-        throw new Error(data.error || "Failed to fetch run history")
-      }
-
-      setRunHistory(data)
-    } catch (error) {
-      console.error("Error fetching run history:", error)
-      toast.error(
-        error instanceof Error ? error.message : "Failed to fetch run history",
-      )
-    }
-  }, [id, versionId])
+  }, [id, user, isAuthLoading, fetchRunHistory])
 
   // Validate form fields
   const validateForm = (): boolean => {
@@ -206,21 +221,13 @@ const PromptClient = ({ id }: PromptClientProps) => {
       const selectedVersion = versions.find((v) => v.version === newVersion)
 
       if (selectedVersion) {
+        console.log("Selected version ID:", selectedVersion.id)
         setVersion(newVersion)
         setVersionId(selectedVersion.id)
         setTemplate(selectedVersion.prompt as string)
+        setTemplateVariables(selectedVersion.template_variables as string[])
 
-        // Fetch the version ID from Supabase
-        const response = await fetch(
-          `/api/prompts/${id}/versions/${selectedVersion.id}`,
-        )
-        if (!response.ok) {
-          throw new Error("Failed to fetch version details")
-        }
-        const versionData = await response.json()
-
-        // Update version ID and fetch run history for this version
-        setVersionId(versionData.id)
+        // Fetch run history for this version
         fetchRunHistory()
       }
     } catch (error) {
@@ -298,8 +305,8 @@ const PromptClient = ({ id }: PromptClientProps) => {
         </div>
       )}
 
-      <div className="grid grid-cols-3 gap-4 flex-grow">
-        <div className="col-span-2 flex flex-col space-y-4">
+      <div className="grid grid-cols-5 gap-4 flex-grow">
+        <div className="col-span-3 flex flex-col space-y-4">
           <PromptEditor
             promptName={promptName}
             description={description}
@@ -316,7 +323,7 @@ const PromptClient = ({ id }: PromptClientProps) => {
           />
         </div>
 
-        <div className="col-span-1">
+        <div className="col-span-2">
           <RunHistory
             runHistory={runHistory}
             onRun={() => {
@@ -337,8 +344,8 @@ const PromptClient = ({ id }: PromptClientProps) => {
         currentVersion={version}
         isLoading={isCreatingVersion}
       />
+      <RunDialog onRunComplete={fetchRunHistory} />
     </div>
   )
 }
-
 export default PromptClient
