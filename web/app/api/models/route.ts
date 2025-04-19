@@ -10,6 +10,9 @@ export async function GET(request: Request) {
     const userId = searchParams.get("userId")
     const provider = searchParams.get("provider")
 
+    console.log("userId", userId)
+    console.log("provider", provider)
+
     if (!userId || !provider) {
       return NextResponse.json(
         { error: "Missing required parameters" },
@@ -26,7 +29,14 @@ export async function GET(request: Request) {
       .single()
 
     if (apiKeyError || !apiKeyData) {
-      return NextResponse.json({ error: "API key not found" }, { status: 404 })
+      return NextResponse.json(
+        {
+          error:
+            "Please add your API key in the settings page to access models",
+          errorType: "missing_api_key",
+        },
+        { status: 404 },
+      )
     }
 
     // Decrypt the API key
