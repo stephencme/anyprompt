@@ -36,13 +36,19 @@ export default function SignupPage() {
     e.preventDefault()
     setLoading(true)
     setMessage("")
+    setError(null)
 
-    if (password !== confirmPassword) {
-      setMessage("Passwords do not match")
+    if (password.length < 8) {
+      setError("Password must be at least 8 characters long")
+      setLoading(false)
       return
     }
 
-    setMessage("")
+    if (password !== confirmPassword) {
+      setError("Passwords do not match")
+      setLoading(false)
+      return
+    }
 
     const { data, error } = await supabase.auth.signUp({
       email,
@@ -53,9 +59,11 @@ export default function SignupPage() {
     })
 
     if (error) {
-      setMessage(error.message)
+      setError(error.message)
     } else {
-      setMessage("Check your email for confirmation!")
+      setMessage(
+        "Please check your email to complete the registration process.",
+      )
     }
 
     if (data?.user) {
@@ -70,7 +78,7 @@ export default function SignupPage() {
       setUser(data.user)
 
       if (insertError) {
-        setMessage(insertError.message)
+        setError(insertError.message)
       } else {
         console.log("New user signed up and profile added:", data.user)
       }
@@ -136,9 +144,21 @@ export default function SignupPage() {
             className={`w-[432px] h-[44px] pl-[165px] pr-3 border border-[#E7E6DF] focus:border-2 focus:border-[#DC6A50] focus:outline-none bg-[#FFFDF3] text-[#6D717B] ${dmMono.className} text-[15px] leading-[19.53px]`}
           />
         </div>
+        <div className="mb-4 text-sm text-gray-500">
+          <p className="font-medium">
+            Password must be at least 8 characters long
+          </p>
+        </div>
         {error && (
           <p className={`text-red-500 text-sm mb-2 ${libreFranklin.className}`}>
             {error}
+          </p>
+        )}
+        {message && (
+          <p
+            className={`text-green-500 text-sm mb-2 ${libreFranklin.className}`}
+          >
+            {message}
           </p>
         )}
         <div className="flex justify-between items-center mt-3 font-['Libre_Franklin'] text-[13px] leading-[15.76px]">
