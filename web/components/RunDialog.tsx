@@ -110,7 +110,7 @@ export default function RunDialog({
     useRunDialogContext()
 
   const [variables, setVariables] = useState<Record<string, string>>({})
-  const [error, setError] = useState<string>("")
+  const [error, setError] = useState<string | null>(null)
   const [model, setModel] = useState<string>("")
   const [provider, setProvider] = useState<string>("OpenAI")
   const [availableModels, setAvailableModels] = useState<string[]>([])
@@ -119,39 +119,58 @@ export default function RunDialog({
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [result, setResult] = useState<string>("")
   const { user } = useAuth()
+  const [showApiKeyAlert, setShowApiKeyAlert] = useState(false)
 
-  // Fetch models when provider changes
+  // Fetch models when dialog is opened and provider changes
   useEffect(() => {
     const fetchModels = async () => {
-      if (!user?.id) return // Don't fetch if no user
+      if (!isOpen || !user?.id) return // Don't fetch if dialog is closed or no user
 
       setIsLoadingModels(true)
       try {
         const response = await fetch(
-          `/api/models?userId=${user.id}&provider=${provider}`,
+          `/api/models?provider=${provider}&userId=${user.id}`,
         )
         const data = await response.json()
 
-        if (response.ok) {
-          setAvailableModels(data.models)
-          // Reset model selection when provider changes
-          setModel(data.models[0] || "")
-        } else {
-          console.error(`Failed to fetch models for ${provider}`)
+        if (!response.ok) {
+          if (data.errorType === "missing_api_key") {
+            toast.error(
+              "Please add your API key in the settings page to access models",
+            )
+            setShowApiKeyAlert(true)
+          } else {
+            console.error("Error fetching models:", data.error)
+            toast.error(
+              data.error || "Failed to fetch models. Please try again.",
+            )
+          }
           setAvailableModels([])
-          setModel("")
+          return
         }
+
+        // Ensure data is an array before setting it
+        if (Array.isArray(data)) {
+          setAvailableModels(data)
+        } else if (data.models && Array.isArray(data.models)) {
+          setAvailableModels(data.models)
+        } else {
+          console.error("Unexpected models response format:", data)
+          setAvailableModels([])
+          toast.error("Failed to fetch models. Invalid response format.")
+        }
+        setShowApiKeyAlert(false)
       } catch (error) {
-        console.error(`Error fetching models: ${error}`)
+        console.error("Error fetching models:", error)
         setAvailableModels([])
-        setModel("")
+        toast.error("Failed to fetch models. Please try again.")
       } finally {
         setIsLoadingModels(false)
       }
     }
 
     fetchModels()
-  }, [provider, user?.id])
+  }, [isOpen, provider, user?.id])
 
   // Handle form submission
   const handleSubmit = async (e: React.FormEvent) => {
