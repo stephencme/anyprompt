@@ -23,64 +23,87 @@ const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY)
 async function createTables() {
   // Array of SQL statements to create various tables.
   const sqlStatements = [
-    // Create the user table.
     `
-    CREATE TABLE IF NOT EXISTS Users (
-      id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-      email text NOT NULL,
-      name text,
-      avatar_url text,
-      api_key text,
-      created_at timestamptz DEFAULT now(),
-      updated_at timestamptz
-    );
+    CREATE EXTENSION IF NOT EXISTS "pgcrypto";
+    `,
+    // Ensure the extensions schema and function are in place
+    `CREATE SCHEMA IF NOT EXISTS extensions;`,
+    `
+    CREATE OR REPLACE FUNCTION extensions.moddatetime()
+    RETURNS trigger
+    LANGUAGE plpgsql
+    SECURITY DEFINER
+    AS $$
+    BEGIN
+      -- TG_ARGV[0] is the first argument passed to the trigger
+      EXECUTE format('NEW.%I = now()', TG_ARGV[0]);
+      RETURN NEW;
+    END;
+    $$;
     `,
     // Create the prompt table.
     `
-    CREATE TABLE IF NOT EXISTS prompt (
-      id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-      user_id uuid REFERENCES Users(id) ON DELETE SET NULL,
-      name text NOT NULL,
-      description text,
-      created_at timestamptz DEFAULT now(),
-      updated_at timestamptz
-    );
+    create table public.prompts (
+      created_at timestamp with time zone not null default now(),
+      name text not null,
+      id uuid not null default gen_random_uuid (),
+      updated_at timestamp with time zone null,
+      description text null,
+      user_id uuid null,
+      constraint prompts_pkey primary key (id),
+      constraint prompts_user_id_fkey foreign KEY (user_id) references auth.users (id) on delete CASCADE
+    ) TABLESPACE pg_default;
+    `,
+    `
+    create trigger handle_updated_at BEFORE
+    update on prompts for EACH row
+    execute FUNCTION extensions.moddatetime ('updated_at');
     `,
     // Create the prompt_version table.
     `
-    CREATE TABLE IF NOT EXISTS prompt_version (
-      id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-      prompt_id uuid REFERENCES prompt(id) ON DELETE SET NULL,
-      version text NOT NULL,
-      prompt text NOT NULL,
-      template_variable text,
-      created_at timestamptz DEFAULT now(),
-      updated_at timestamptz
-    );
+    create table public.prompt_version (
+      id uuid not null default gen_random_uuid (),
+      created_at timestamp with time zone not null default now(),
+      prompt text null,
+      template_variables text[] null,
+      prompt_id uuid not null,
+      version text not null,
+      updated_at timestamp with time zone null,
+      constraint prompt_version_pkey primary key (id),
+      constraint prompt_version_prompt_id_fkey foreign KEY (prompt_id) references prompts (id) on update CASCADE on delete CASCADE
+    ) TABLESPACE pg_default;
+    `,
+    `
+    create trigger handle_updated_at BEFORE
+    update on prompt_version for EACH row
+    execute FUNCTION extensions.moddatetime ('updated_at');
     `,
     // Create the run_history table.
     `
-    CREATE TABLE IF NOT EXISTS run_history (
-      id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-      prompt_version uuid REFERENCES prompt_version(id) ON DELETE SET NULL,
-      variable text NOT NULL,
-      model varchar,
-      run_result text,
-      run_timestamp timestamptz DEFAULT now(),
-      additional_metadata jsonb
-    );
+    create table public.run_history (
+      model character varying not null,
+      run_result text not null,
+      run_timestamp timestamp with time zone not null default now(),
+      additional_metadata jsonb not null,
+      prompt_version uuid not null,
+      id uuid not null default gen_random_uuid (),
+      user_prompt text null,
+      constraint run_history_pkey primary key (id),
+      constraint run_history_prompt_version_fkey foreign KEY (prompt_version) references prompt_version (id) on update CASCADE on delete CASCADE
+    ) TABLESPACE pg_default;
     `,
     // Create the user_api_keys table.
     `
-    CREATE TABLE IF NOT EXISTS user_api_keys (
-      id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-      user_id uuid REFERENCES Users(id) ON DELETE SET NULL,
-      variable text NOT NULL,
-      encrypted_api_key text,
-      model varchar,
-      created_at timestamptz DEFAULT now(),
-      updated_at timestamptz
-    );
+    create table public.user_api_keys (
+      id uuid not null default gen_random_uuid (),
+      user_id uuid not null,
+      provider character varying not null,
+      encrypted_api_key text not null,
+      created_at timestamp with time zone null default timezone ('utc'::text, now()),
+      updated_at timestamp with time zone null,
+      constraint user_api_keys_pkey primary key (id),
+      constraint user_api_keys_user_id_fkey foreign KEY (user_id) references auth.users (id) on delete CASCADE
+    ) TABLESPACE pg_default;
     `,
     // You can add additional SQL commands as needed.
   ]
