@@ -40,6 +40,10 @@ cd anyprompt
 npm install
 ```
 
+### Step 3: Setup Supabase
+
+Please follow the [SUPABASE_SETUP.md](web/SUPABASE_SETUP.md) guide.
+
 ## Running the Project
 
 ### Running the Web App
