@@ -108,7 +108,30 @@ export default function SettingsPageClient() {
   }
 
   const handlePasswordChange = async () => {
-    // TODO: Implement password change
+      
+    const newPasswordInput = document.getElementById("password") as HTMLInputElement
+    const newPassword = newPasswordInput?.value.trim()
+
+    if (!newPassword) {
+      toast.error("Password cannot be empty")
+      return
+    }
+
+    try {
+      const { error } = await supabase.auth.updateUser({
+        password: newPassword,
+      })
+
+      if (error) {
+        throw error
+      }
+
+      toast.success("Password changed successfully")
+      newPasswordInput.value = "" // clear input field
+    } catch (err: any) {
+      console.error("Error changing password:", err)
+      toast.error("Failed to change password")
+    }
   }
 
   const handleInputChange = (provider: string, value: string) => {
@@ -231,7 +254,6 @@ export default function SettingsPageClient() {
           {/* Password box */}
           <div className="mb-6">
             <h2
-              onClick={handlePasswordChange}
               className={`text-sm mb-2 pl-3 text-[#484F5E] font-medium ${dmmono.className}`}
             >
               Change password
@@ -249,7 +271,7 @@ export default function SettingsPageClient() {
                 placeholder="password"
                 className="flex-1 border-none outline-none bg-transparent text-[#6D717B] placeholder:text-[#6D717B]"
               />
-              <button
+              <button onClick={handlePasswordChange}
                 className={`bg-[#DC6A50] text-white px-3 py-1 border border-[#eab6a7] font-bold ${librefranklin.className}`}
               >
                 Change
