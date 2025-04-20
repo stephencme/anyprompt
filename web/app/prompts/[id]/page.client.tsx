@@ -31,7 +31,7 @@ const PromptClient = ({ id }: PromptClientProps) => {
   const { user, isAuthLoading } = useAuth()
 
   // To do: allow users to edit prompt name
-  const [promptName] = useState<string>(prompt.name)
+  const [promptName, setPromptName] = useState<string>("")
   const [version, setVersion] = useState<string>("")
   const [versionId, setVersionId] = useState<string>("")
   const [template, setTemplate] = useState<string>("")
@@ -59,6 +59,7 @@ const PromptClient = ({ id }: PromptClientProps) => {
   } = useRunDialogContext()
 
   const fetchRunHistory = useCallback(async () => {
+    console.log("fetchRunHistory called with versionId:", versionId)
     try {
       if (!versionId) {
         console.log("No versionId available, skipping run history fetch")
@@ -69,15 +70,17 @@ const PromptClient = ({ id }: PromptClientProps) => {
       const response = await fetch(
         `/api/prompts/${id}/versions/${versionId}/runs`,
       )
+      console.log("Run history API response status:", response.status)
       const data = await response.json()
-      console.log("Run history response:", data)
+      console.log("Run history response data:", data)
 
       if (!response.ok) {
         console.error("Error response from API:", data)
         throw new Error(data.error || "Failed to fetch run history")
       }
 
-      setRunHistory(data)
+      console.log("Setting run history with data:", data)
+      setRunHistory([...data])
     } catch (error) {
       console.error("Error fetching run history:", error)
       toast.error(
@@ -125,6 +128,7 @@ const PromptClient = ({ id }: PromptClientProps) => {
       }
 
       setPrompt(promptData)
+      setPromptName(promptData.name)
       setVersions(versionData)
       setVersion(versionData[0].version as string)
       setVersionId(versionData[0].id)
