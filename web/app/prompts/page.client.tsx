@@ -3,6 +3,7 @@
 import { Merriweather } from "next/font/google"
 import PromptCard from "@/components/PromptCard"
 import { Loader2, Plus } from "lucide-react"
+import { toast } from "sonner"
 import Link from "next/link"
 import { useAuth } from "@/context/AuthContext"
 import { redirect } from "next/navigation"
@@ -26,18 +27,34 @@ export default function PromptsPageClient() {
   const { user, isAuthLoading } = useAuth()
 
   async function getPromptsWithVersions() {
-    setIsLoading(true)
-    const res = await fetch(`http://localhost:3000/api/prompts`, {
-      cache: "no-store",
-    })
-
-    if (!res.ok) {
-      throw new Error("Failed to fetch prompts")
+    if(user){
+      setIsLoading(true)
+      try{
+        const response = await fetch(`/api/prompts?userId=${user.id}`)
+        if (!response.ok) {
+          throw new Error("Failed to fetch prompts")
+        } 
+        const prompts = await response.json()
+        setIsLoading(false);
+        return prompts;
     }
+    catch(error){
+      console.error("Error fetching prompts:", error)
+      toast.error("Failed to fetch prompts")
+    }
+  }
 
-    const prompts = await res.json()
-    setIsLoading(false)
-    return prompts
+    // const res = await fetch(`http://localhost:3000/api/prompts`, {
+    //   cache: "no-store",
+    // })
+
+    // if (!res.ok) {
+    //   throw new Error("Failed to fetch prompts")
+    // }
+
+    // const prompts = await res.json()
+    // setIsLoading(false)
+    // return prompts
   }
 
   useEffect(() => {

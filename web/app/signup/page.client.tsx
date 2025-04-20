@@ -28,7 +28,7 @@ export default function SignupPage() {
   const [message, setMessage] = useState("")
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [error, setError] = useState<string | null>(null)
-  const { setUser } = useAuth()
+  // const { setUser } = useAuth()
   // const [error, setError] = useState<string | null>(null);
 
   // Messages do not show up, but otherwise, signup works
@@ -66,23 +66,23 @@ export default function SignupPage() {
       )
     }
 
-    if (data?.user) {
-      // Insert the user profile into your custom table `Users`
-      const { error: insertError } = await supabase.from("Users").insert([
-        {
-          id: data.user.id, // Use the user ID from Supabase Authentication
-          email: data.user.email || "", // Ensure email is a string
-        },
-      ])
+    // if (data?.user) {
+    //   // Insert the user profile into your custom table `Users`
+    //   const { error: insertError } = await supabase.from("Users").insert([
+    //     {
+    //       id: data.user.id, // Use the user ID from Supabase Authentication
+    //       email: data.user.email || "", // Ensure email is a string
+    //     },
+    //   ])
 
-      setUser(data.user)
+    //   setUser(data.user)
 
-      if (insertError) {
-        setError(insertError.message)
-      } else {
-        console.log("New user signed up and profile added:", data.user)
-      }
-    }
+    //   if (insertError) {
+    //     setError(insertError.message)
+    //   } else {
+    //     console.log("New user signed up and profile added:", data.user)
+    //   }
+    // }
 
     setLoading(false)
   }
