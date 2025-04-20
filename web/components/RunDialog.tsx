@@ -58,11 +58,11 @@ const handleRun = async ({
     setError(
       "Please fill in all standalone fields (userID, promptID, provider, model).",
     )
-    return
+    return false
   }
   if (Object.keys(parameters).length === 0) {
     setError("Please provide at least one template parameter.")
-    return
+    return false
   }
 
   try {
@@ -83,8 +83,10 @@ const handleRun = async ({
     const data = await response.json()
     if (!response.ok) {
       setError(data.error || "An error occurred.")
+      return false
     } else {
       setResult(data.result)
+      return true
     }
   } catch (err: unknown) {
     if (err instanceof Error) {
@@ -92,6 +94,7 @@ const handleRun = async ({
     } else {
       setError("An unexpected error occurred.")
     }
+    return false
   }
 }
 
@@ -184,21 +187,24 @@ export default function RunDialog({
 
     if (missingVariables.length > 0) {
       setError(`Please fill in all variables: ${missingVariables.join(", ")}`)
+      setIsLoading(false)
       return
     }
 
     if (!user?.id) {
       setError("User not authenticated")
+      setIsLoading(false)
       return
     }
 
     if (!model) {
       setError("Please select a model")
+      setIsLoading(false)
       return
     }
 
     try {
-      await handleRun({
+      const success = await handleRun({
         userID: user.id,
         promptID: promptVersion?.id || "",
         provider,
@@ -207,11 +213,25 @@ export default function RunDialog({
         setError,
         setResult,
       })
-      // Show success toast and close dialog
-      toast.success("Prompt run completed successfully!")
-      setIsOpen(false)
-      // Call the onRunComplete callback to trigger run history fetch
-      onRunComplete?.()
+
+      console.log("Run completed with success:", success)
+      if (success) {
+        console.log(
+          "Calling onRunComplete callback with promptVersion:",
+          promptVersion?.id,
+        )
+        // Call the onRunComplete callback to trigger run history fetch before closing dialog
+        if (onRunComplete) {
+          console.log("onRunComplete exists, calling it")
+          await onRunComplete()
+          console.log("onRunComplete completed")
+        } else {
+          console.log("onRunComplete is undefined")
+        }
+        // Show success toast and close dialog
+        toast.success("Prompt run completed successfully!")
+        setIsOpen(false)
+      }
     } catch (error) {
       console.error("Error running prompt:", error)
       toast.error("Failed to run prompt. Please try again.")

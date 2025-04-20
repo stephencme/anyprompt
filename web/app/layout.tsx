@@ -40,7 +40,6 @@ export default function RootLayout({
               <div className="flex-1 flex">
                 <Sidebar />
                 <main className="flex-1">{children}</main>
-                <RunDialog />
               </div>
             </div>
             <Toaster position="top-right" />

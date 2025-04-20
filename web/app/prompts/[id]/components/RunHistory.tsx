@@ -20,13 +20,16 @@ export default function RunHistory({ runHistory, onRun }: RunHistoryProps) {
 
   // Set initial selected run and update when new runs are available
   useEffect(() => {
+    console.log("RunHistory received new data:", runHistory)
     if (runHistory.length > 0) {
       // Always select the first run (newest) since they're ordered by timestamp descending
       setSelectedRunId(runHistory[0].id)
+      console.log("Selected new run ID:", runHistory[0].id)
     }
   }, [runHistory])
 
   const selectedRun = runHistory.find((run) => run.id === selectedRunId)
+  console.log("Currently selected run:", selectedRun)
   // const metadata = selectedRun?.additional_metadata as RunMetadata | undefined
 
   return (
