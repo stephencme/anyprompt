@@ -69,7 +69,7 @@ const NewPromptClient = () => {
       const templateVariables = extractTemplateVariables(template)
 
       // Call our API route instead of Supabase directly
-      const response = await fetch("/api/prompts", {
+      const response = await fetch(`/api/prompts?userId=${user?.id}`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

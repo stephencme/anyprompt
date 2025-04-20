@@ -1,7 +1,7 @@
 "use client"
 
 import { useEffect, useState } from "react"
-import { Database } from "@/database.types"
+// import { Database } from "@/database.types"
 import { useRouter } from "next/navigation"
 import { toast } from "sonner"
 import { useAuth } from "@/context/AuthContext"
@@ -36,40 +36,20 @@ const providers = ["OpenAI", "Anthropic"]
 
 export default function SettingsPageClient() {
   const { user, setUser, isAuthLoading } = useAuth()
-  const [profile, setProfile] = useState<
-    Database["public"]["Tables"]["Users"]["Row"] | null
-  >(null)
+  // const [profile, setProfile] = useState<
+  //   Database["public"]["Tables"]["Users"]["Row"] | null
+  // >(null)
   const router = useRouter()
   const [keys, setKeys] = useState<APIKeys>()
   const [apiKeys, setApiKeys] = useState<Record<string, string>>({})
   const [isLoading, setIsLoading] = useState(true)
   const [isSaving, setIsSaving] = useState(false)
 
-  const fetchUser = async () => {
-    const { data } = await supabase.auth.getUser()
-    const current_user = data?.user
-    setUser(current_user)
-
-    if (current_user) {
-      const { data: p, error: profileError } = await supabase
-        .from("Users")
-        .select("*")
-        .eq("id", current_user?.id)
-        .single()
-
-      if (profileError) {
-        return <div>Error retrieving profile</div>
-      } else {
-        setProfile(p)
-      }
-    }
-  }
-
   const fetchKeys = async () => {
-    if (profile) {
+    if (user) {
       setIsLoading(true)
       try {
-        const response = await fetch(`/api/fetchAPIKeys?userId=${profile.id}`)
+        const response = await fetch(`/api/fetchAPIKeys?userId=${user.id}`)
         if (!response.ok) {
           throw new Error("Failed to fetch API keys")
         }
@@ -143,7 +123,7 @@ export default function SettingsPageClient() {
 
   const handleSave = async (provider: string) => {
     const apiKey = apiKeys[provider]
-    if (!profile?.id) {
+    if (!user?.id) {
       toast.error("User not authenticated")
       return
     }
@@ -163,7 +143,7 @@ export default function SettingsPageClient() {
         body: JSON.stringify({
           provider,
           apiKey,
-          userId: profile.id,
+          userId: user.id,
         }),
       })
 
@@ -186,17 +166,17 @@ export default function SettingsPageClient() {
     }
   }
 
-  useEffect(() => {
-    fetchUser()
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [])
+  // useEffect(() => {
+  //   fetchUser()
+  //   // eslint-disable-next-line react-hooks/exhaustive-deps
+  // }, [])
 
   useEffect(() => {
-    if (profile) {
+    if (user) {
       fetchKeys()
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [profile])
+  }, [user])
 
   if (!user && !isAuthLoading) {
     redirect("/login")
@@ -241,7 +221,7 @@ export default function SettingsPageClient() {
             <p
               className={`mb-4 text-[#0B152D] font-medium ${dmmono.className}`}
             >
-              {profile?.email}
+              {user?.email}
             </p>
             <button
               onClick={handleSignOut}

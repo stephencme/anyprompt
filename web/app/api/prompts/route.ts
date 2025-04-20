@@ -1,12 +1,23 @@
 import { NextResponse } from "next/server"
 import { supabase } from "@/lib/supabase"
 
-export async function GET() {
+export async function GET(request: Request) {
   try {
-    // First, get all prompts
+    //get user id from url
+    const url = new URL(request.url)
+    const userId = url.searchParams.get("userId")
+    if(!userId){
+      return NextResponse.json(
+        { error: "User ID is required." },
+        { status: 400 },
+      )
+    }
+
+
     const { data: prompts, error: promptsError } = await supabase
       .from("prompts")
       .select("*")
+      .eq("user_id", userId)
 
     if (promptsError) {
       console.error("Error fetching prompts:", promptsError)
@@ -59,6 +70,16 @@ export async function GET() {
 
 export async function POST(request: Request) {
   try {
+    //get user id from url
+    const url = new URL(request.url)
+    const userId = url.searchParams.get("userId")
+    if(!userId){
+      return NextResponse.json(
+        { error: "User ID is required." },
+        { status: 400 },
+      )
+    }
+
     const body = await request.json()
     const { name, description, template, version, templateVariables } = body
 
@@ -73,7 +94,7 @@ export async function POST(request: Request) {
     // First, create the prompt
     const { data: promptData, error: promptError } = await supabase
       .from("prompts")
-      .insert([{ name, description }])
+      .insert([{ name: name, description: description, user_id: userId }])
       .select("id")
       .single()
 
