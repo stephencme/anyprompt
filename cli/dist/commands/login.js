@@ -10,8 +10,8 @@ const ora_1 = __importDefault(require("ora"));
 const fs_1 = require("fs");
 const path_1 = __importDefault(require("path"));
 const readline_1 = __importDefault(require("readline"));
-const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL || "https://qcuruxudpkctlyrvagyy.supabase.co";
-const SUPABASE_ANON_KEY = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFjdXJ1eHVkcGtjdGx5cnZhZ3l5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Mzg5MDQzNTcsImV4cCI6MjA1NDQ4MDM1N30.igQTnslj7wYbdy6BD8z3YZipLATdvQh1URO3-ewq1EI";
+const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL || "";
+const SUPABASE_ANON_KEY = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || "";
 // Function to get user input
 function question(query) {
     const rl = readline_1.default.createInterface({

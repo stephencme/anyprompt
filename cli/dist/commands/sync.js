@@ -19,8 +19,8 @@ process.on('warning', (warning) => {
     }
     console.warn(warning.name, warning.message);
 });
-const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL || "https://qcuruxudpkctlyrvagyy.supabase.co";
-const SUPABASE_ANON_KEY = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFjdXJ1eHVkcGtjdGx5cnZhZ3l5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Mzg5MDQzNTcsImV4cCI6MjA1NDQ4MDM1N30.igQTnslj7wYbdy6BD8z3YZipLATdvQh1URO3-ewq1EI";
+const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL || "";
+const SUPABASE_ANON_KEY = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || "";
 async function sync(devMode = false) {
     const spinner = (0, ora_1.default)('Syncing prompts...\n').start();
     try {
@@ -97,8 +97,25 @@ async function sync(devMode = false) {
                 // Write prompts to files
                 for (const prompt of promptsWithVersions) {
                     const promptDir = path_1.default.join(promptsDir, prompt.name);
-                    if (!fs_1.default.existsSync(promptDir)) {
+                    const isNewPrompt = !fs_1.default.existsSync(promptDir);
+                    if (isNewPrompt) {
                         fs_1.default.mkdirSync(promptDir, { recursive: true });
+                        if (!silent) {
+                            console.log(chalk_1.default.green(`Inserted local prompt directory: ${prompt.name}`));
+                        }
+                    }
+                    else {
+                        // Check if content has changed by comparing with existing files
+                        const metadataPath = path_1.default.join(promptDir, 'metadata.json');
+                        const existingMetadata = fs_1.default.existsSync(metadataPath)
+                            ? JSON.parse(fs_1.default.readFileSync(metadataPath, 'utf8'))
+                            : null;
+                        const hasChanges = !existingMetadata ||
+                            existingMetadata.description !== prompt.description ||
+                            existingMetadata.updated_at !== prompt.updated_at;
+                        if (hasChanges && !silent) {
+                            console.log(chalk_1.default.green(`Updated local prompt directory: ${prompt.name}`));
+                        }
                     }
                     // Write prompt metadata
                     fs_1.default.writeFileSync(path_1.default.join(promptDir, 'metadata.json'), JSON.stringify({
@@ -123,7 +140,7 @@ async function sync(devMode = false) {
                     if (!currentPrompts[promptId]) {
                         // This prompt was deleted on the server
                         if (!silent) {
-                            console.log(chalk_1.default.yellow(`Prompt ${promptId} was deleted on the server.`));
+                            // Removed yellow text message
                         }
                         // Find the prompt directory by searching through metadata files
                         const promptDirs = fs_1.default.readdirSync(promptsDir);

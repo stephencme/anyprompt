@@ -1,0 +1,57 @@
+{
+  "version": "0.1.0",
+  "promptsDir": ".anyprompt",
+  "auth": {
+    "session": {
+      "access_token": "eyJhbGciOiJIUzI1NiIsImtpZCI6Iitxci9XeWF3czdTNzVoSWsiLCJ0eXAiOiJKV1QifQ.eyJpc3MiOiJodHRwczovL3FjdXJ1eHVkcGtjdGx5cnZhZ3l5LnN1cGFiYXNlLmNvL2F1dGgvdjEiLCJzdWIiOiIxOTA4NDlkYS0wNmFjLTQ3MTUtOTgzNS05ZTY3ZGUwMjZlZDMiLCJhdWQiOiJhdXRoZW50aWNhdGVkIiwiZXhwIjoxNzQ1MjA1MTQ0LCJpYXQiOjE3NDUyMDE1NDQsImVtYWlsIjoieWJhbnNhbEB1c2MuZWR1IiwicGhvbmUiOiIiLCJhcHBfbWV0YWRhdGEiOnsicHJvdmlkZXIiOiJlbWFpbCIsInByb3ZpZGVycyI6WyJlbWFpbCJdfSwidXNlcl9tZXRhZGF0YSI6eyJlbWFpbCI6InliYW5zYWxAdXNjLmVkdSIsImVtYWlsX3ZlcmlmaWVkIjp0cnVlLCJwaG9uZV92ZXJpZmllZCI6ZmFsc2UsInN1YiI6IjE5MDg0OWRhLTA2YWMtNDcxNS05ODM1LTllNjdkZTAyNmVkMyJ9LCJyb2xlIjoiYXV0aGVudGljYXRlZCIsImFhbCI6ImFhbDEiLCJhbXIiOlt7Im1ldGhvZCI6InBhc3N3b3JkIiwidGltZXN0YW1wIjoxNzQ1MjAxNTQ0fV0sInNlc3Npb25faWQiOiJhZDA4YjhmMC01YjdiLTQxMTItYTNmMS1jMGJmMzI1NGI2Y2YiLCJpc19hbm9ueW1vdXMiOmZhbHNlfQ.gAzMQHqtxVh4bhvEwnaVR29qVP3f6TzoZGA284q0BMM",
+      "refresh_token": "KcF9KFBwZW6c9-Vq_CRQyQ",
+      "expires_at": 1745205144,
+      "expires_in": 3600,
+      "token_type": "bearer",
+      "user": {
+        "id": "190849da-06ac-4715-9835-9e67de026ed3",
+        "aud": "authenticated",
+        "role": "authenticated",
+        "email": "ybansal@usc.edu",
+        "email_confirmed_at": "2025-04-02T00:40:42.544024Z",
+        "phone": "",
+        "confirmation_sent_at": "2025-04-02T00:40:15.606697Z",
+        "confirmed_at": "2025-04-02T00:40:42.544024Z",
+        "last_sign_in_at": "2025-04-21T02:12:24.656612972Z",
+        "app_metadata": {
+          "provider": "email",
+          "providers": [
+            "email"
+          ]
+        },
+        "user_metadata": {
+          "email": "ybansal@usc.edu",
+          "email_verified": true,
+          "phone_verified": false,
+          "sub": "190849da-06ac-4715-9835-9e67de026ed3"
+        },
+        "identities": [
+          {
+            "identity_id": "68781009-67e3-4078-b9ad-2a57f45583f7",
+            "id": "190849da-06ac-4715-9835-9e67de026ed3",
+            "user_id": "190849da-06ac-4715-9835-9e67de026ed3",
+            "identity_data": {
+              "email": "ybansal@usc.edu",
+              "email_verified": true,
+              "phone_verified": false,
+              "sub": "190849da-06ac-4715-9835-9e67de026ed3"
+            },
+            "provider": "email",
+            "last_sign_in_at": "2025-04-02T00:40:15.600494Z",
+            "created_at": "2025-04-02T00:40:15.600543Z",
+            "updated_at": "2025-04-02T00:40:15.600543Z",
+            "email": "ybansal@usc.edu"
+          }
+        ],
+        "created_at": "2025-04-02T00:40:15.594898Z",
+        "updated_at": "2025-04-21T02:12:24.660985Z",
+        "is_anonymous": false
+      }
+    }
+  }
+}
