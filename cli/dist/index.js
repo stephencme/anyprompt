@@ -4,6 +4,14 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
+// Suppress punycode deprecation warning
+process.removeAllListeners('warning');
+process.on('warning', (warning) => {
+    if (warning.name === 'DeprecationWarning' && warning.message.includes('punycode')) {
+        return;
+    }
+    console.warn(warning.name, warning.message);
+});
 const commander_1 = require("commander");
 const init_1 = require("./commands/init");
 const sync_1 = require("./commands/sync");
@@ -54,7 +62,7 @@ program
 program
     .command('sync')
     .description('Sync prompts from the server')
-    .option('-dev', 'Enable Live Refresh Mode for development')
+    .option('-dev, --dev', 'Enable Live Refresh Mode for development')
     .action(async (options) => {
     try {
         await (0, sync_1.sync)(options.dev);

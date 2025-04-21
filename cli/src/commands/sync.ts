@@ -7,11 +7,20 @@ import { Database } from '../types/database';
 import { watch } from 'chokidar';
 import { debounce } from 'lodash';
 
-const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL || "";
-const SUPABASE_ANON_KEY = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || "";
+// Suppress punycode deprecation warning
+process.removeAllListeners('warning');
+process.on('warning', (warning) => {
+  if (warning.name === 'DeprecationWarning' && warning.message.includes('punycode')) {
+    return;
+  }
+  console.warn(warning.name, warning.message);
+});
+
+const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL || "https://qcuruxudpkctlyrvagyy.supabase.co";
+const SUPABASE_ANON_KEY = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFjdXJ1eHVkcGtjdGx5cnZhZ3l5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Mzg5MDQzNTcsImV4cCI6MjA1NDQ4MDM1N30.igQTnslj7wYbdy6BD8z3YZipLATdvQh1URO3-ewq1EI";
 
 export async function sync(devMode: boolean = false): Promise<void> {
-  const spinner = ora('Syncing prompts...').start();
+  const spinner = ora('Syncing prompts...\n').start();
 
   try {
     // Check if .anypromptrc exists
@@ -57,8 +66,11 @@ export async function sync(devMode: boolean = false): Promise<void> {
       process.exit(1);
     }
 
+    // Keep track of existing prompts for comparison
+    let existingPrompts: { [key: string]: boolean } = {};
+
     // Function to fetch and write prompts
-    const fetchAndWritePrompts = async () => {
+    const fetchAndWritePrompts = async (silent: boolean = false) => {
       try {
         // Fetch all prompts
         const { data: prompts, error: promptsError } = await supabase
@@ -69,9 +81,15 @@ export async function sync(devMode: boolean = false): Promise<void> {
           throw new Error(`Failed to fetch prompts: ${promptsError.message}`);
         }
 
+        // Create a map of current prompts for comparison
+        const currentPrompts: { [key: string]: boolean } = {};
+
         // Fetch versions for each prompt
         const promptsWithVersions = await Promise.all(
           prompts.map(async (prompt) => {
+            // Mark this prompt as current
+            currentPrompts[prompt.id] = true;
+
             const { data: versions, error: versionsError } = await supabase
               .from('prompt_version')
               .select('version, prompt, template_variables')
@@ -126,13 +144,47 @@ export async function sync(devMode: boolean = false): Promise<void> {
           }
         }
 
-        spinner.succeed(chalk.green('Successfully synced prompts'));
+        // Check for deleted prompts
+        for (const promptId in existingPrompts) {
+          if (!currentPrompts[promptId]) {
+            // This prompt was deleted on the server
+            if (!silent) {
+              console.log(chalk.yellow(`Prompt ${promptId} was deleted on the server.`));
+            }
+            
+            // Find the prompt directory by searching through metadata files
+            const promptDirs = fs.readdirSync(promptsDir);
+            for (const dir of promptDirs) {
+              const metadataPath = path.join(promptsDir, dir, 'metadata.json');
+              if (fs.existsSync(metadataPath)) {
+                const metadata = JSON.parse(fs.readFileSync(metadataPath, 'utf8'));
+                if (metadata.id === promptId) {
+                  // Delete the prompt directory
+                  fs.rmSync(path.join(promptsDir, dir), { recursive: true, force: true });
+                  if (!silent) {
+                    console.log(chalk.green(`Deleted local prompt directory: ${dir}`));
+                  }
+                  break;
+                }
+              }
+            }
+          }
+        }
+
+        // Update existing prompts map for next comparison
+        existingPrompts = currentPrompts;
+
+        if (!silent) {
+          spinner.succeed(chalk.green('Successfully synced prompts'));
+        }
         
         if (!devMode) {
           process.exit(0);
         }
       } catch (error) {
-        spinner.fail(chalk.red(`Error syncing prompts: ${error instanceof Error ? error.message : 'Unknown error'}`));
+        if (!silent) {
+          spinner.fail(chalk.red(`Error syncing prompts: ${error instanceof Error ? error.message : 'Unknown error'}`));
+        }
         if (!devMode) {
           process.exit(1);
         }
@@ -142,11 +194,51 @@ export async function sync(devMode: boolean = false): Promise<void> {
     // Initial sync
     await fetchAndWritePrompts();
 
-    // If in dev mode, watch for changes
+    // If in dev mode, set up real-time sync
     if (devMode) {
       console.log(chalk.blue('\nLive Refresh Mode enabled. Press Ctrl+C to exit.'));
       
-      // Watch for changes in the prompts directory
+      // Set up Supabase real-time subscription for prompts table
+      const promptsSubscription = supabase
+        .channel('prompts-changes')
+        .on(
+          'postgres_changes',
+          {
+            event: '*', // Listen to all events (INSERT, UPDATE, DELETE)
+            schema: 'public',
+            table: 'prompts'
+          },
+          async (payload) => {
+            console.log(chalk.blue(`Server change detected: ${payload.eventType} on prompt`));
+            await fetchAndWritePrompts();
+          }
+        )
+        .subscribe();
+
+      // Set up Supabase real-time subscription for prompt_version table
+      const versionsSubscription = supabase
+        .channel('prompt-versions-changes')
+        .on(
+          'postgres_changes',
+          {
+            event: '*', // Listen to all events (INSERT, UPDATE, DELETE)
+            schema: 'public',
+            table: 'prompt_version'
+          },
+          async (payload) => {
+            console.log(chalk.blue(`Server change detected: ${payload.eventType} on prompt version`));
+            await fetchAndWritePrompts();
+          }
+        )
+        .subscribe();
+
+      // Also set up a periodic check as a fallback (every 30 seconds)
+      const serverCheckInterval = setInterval(async () => {
+        // Silent periodic check without logging
+        await fetchAndWritePrompts(true);
+      }, 30000);
+
+      // Watch for local changes
       const watcher = watch(promptsDir, {
         ignored: /(^|[\/\\])\../, // ignore dotfiles
         persistent: true
@@ -158,7 +250,7 @@ export async function sync(devMode: boolean = false): Promise<void> {
         await fetchAndWritePrompts();
       }, 1000);
 
-      // Watch for changes
+      // Watch for local changes
       watcher
         .on('add', debouncedSync)
         .on('change', debouncedSync)
@@ -170,6 +262,9 @@ export async function sync(devMode: boolean = false): Promise<void> {
       // Handle process termination
       const cleanup = () => {
         watcher.close();
+        clearInterval(serverCheckInterval);
+        promptsSubscription.unsubscribe();
+        versionsSubscription.unsubscribe();
         process.exit(0);
       };
 

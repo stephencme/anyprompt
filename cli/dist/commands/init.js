@@ -45,6 +45,7 @@ async function init() {
         console.log('1. Run', chalk_1.default.cyan('anyprompt login'), 'to authenticate with AnyPrompt');
         console.log('2. Run', chalk_1.default.cyan('anyprompt sync'), 'to fetch your prompts');
         console.log('3. Run', chalk_1.default.cyan('anyprompt sync -dev'), 'to start development mode with live refresh');
+        console.log('4. Run', chalk_1.default.cyan('anyprompt logout'), 'to end the session\n');
     }
     catch (error) {
         spinner.fail(chalk_1.default.red('Failed to initialize AnyPrompt'));

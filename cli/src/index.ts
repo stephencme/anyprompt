@@ -1,5 +1,14 @@
 #!/usr/bin/env node
 
+// Suppress punycode deprecation warning
+process.removeAllListeners('warning');
+process.on('warning', (warning) => {
+  if (warning.name === 'DeprecationWarning' && warning.message.includes('punycode')) {
+    return;
+  }
+  console.warn(warning.name, warning.message);
+});
+
 import { Command } from 'commander';
 import { init } from './commands/init';
 import { sync } from './commands/sync';
@@ -53,7 +62,7 @@ program
 program
   .command('sync')
   .description('Sync prompts from the server')
-  .option('-dev', 'Enable Live Refresh Mode for development')
+  .option('-dev, --dev', 'Enable Live Refresh Mode for development')
   .action(async (options) => {
     try {
       await sync(options.dev);

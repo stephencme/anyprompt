@@ -43,6 +43,7 @@ export async function init(): Promise<void> {
     console.log('1. Run', chalk.cyan('anyprompt login'), 'to authenticate with AnyPrompt');
     console.log('2. Run', chalk.cyan('anyprompt sync'), 'to fetch your prompts');
     console.log('3. Run', chalk.cyan('anyprompt sync -dev'), 'to start development mode with live refresh');
+    console.log('4. Run', chalk.cyan('anyprompt logout'), 'to end the session\n');
   } catch (error) {
     spinner.fail(chalk.red('Failed to initialize AnyPrompt'));
     throw error;
