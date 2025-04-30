@@ -6,6 +6,9 @@ import { createClient } from '@supabase/supabase-js';
 import { Database } from '../types/database';
 import { watch } from 'chokidar';
 import { debounce } from 'lodash';
+import dotenv from 'dotenv';
+
+dotenv.config();
 
 // Suppress punycode deprecation warning
 process.removeAllListeners('warning');
@@ -230,6 +233,7 @@ export async function sync(devMode: boolean = false): Promise<void> {
           async (payload) => {
             console.log(chalk.blue(`Server change detected: ${payload.eventType} on prompt`));
             await fetchAndWritePrompts();
+            console.log(chalk.green('Finished server-initiated sync for prompts'));
           }
         )
         .subscribe();
@@ -247,15 +251,61 @@ export async function sync(devMode: boolean = false): Promise<void> {
           async (payload) => {
             console.log(chalk.blue(`Server change detected: ${payload.eventType} on prompt version`));
             await fetchAndWritePrompts();
+            console.log(chalk.green('Finished server-initiated sync for prompt version changes'));
           }
         )
         .subscribe();
 
-      // Also set up a periodic check as a fallback (every 30 seconds)
+      // Also set up a periodic check as a fallback (every 1 second)
       const serverCheckInterval = setInterval(async () => {
-        // Silent periodic check without logging
-        await fetchAndWritePrompts(true);
-      }, 30000);
+        const { data: prompts, error: promptsError } = await supabase
+          .from('prompts')
+          .select('*');
+
+        if (promptsError) {
+          return;
+        }
+
+        // Create a map of current prompts for comparison
+        const currentPrompts: { [key: string]: boolean } = {};
+        prompts.forEach(prompt => currentPrompts[prompt.id] = true);
+
+        // Check for specific changes
+        const newPrompts = Object.keys(currentPrompts).filter(id => !existingPrompts[id]);
+        const deletedPrompts = Object.keys(existingPrompts).filter(id => !currentPrompts[id]);
+        
+        if (newPrompts.length > 0 || deletedPrompts.length > 0) {
+          if (newPrompts.length > 0) {
+            console.log(chalk.green(`New prompts detected: ${newPrompts.length}`));
+          }
+          if (deletedPrompts.length > 0) {
+            console.log(chalk.red(`Deleted prompts detected: ${deletedPrompts.length}`));
+          }
+          await fetchAndWritePrompts(false);
+        } else {
+          // Check for updates in existing prompts
+          const { data: updatedPrompts, error: updatesError } = await supabase
+            .from('prompts')
+            .select('updated_at, name')
+            .in('id', Object.keys(existingPrompts));
+
+          if (updatesError) {
+            return;
+          }
+
+          const hasUpdates = updatedPrompts.some(prompt => {
+            const metadataPath = path.join(promptsDir, prompt.name, 'metadata.json');
+            if (!fs.existsSync(metadataPath)) return true;
+            const existingMetadata = JSON.parse(fs.readFileSync(metadataPath, 'utf8'));
+            return existingMetadata.updated_at !== prompt.updated_at;
+          });
+
+          if (hasUpdates) {
+            console.log(chalk.yellow('Updates detected in existing prompts'));
+            await fetchAndWritePrompts(false);
+          }
+        }
+      }, 1000);
 
       // Watch for local changes
       const watcher = watch(promptsDir, {
@@ -267,7 +317,8 @@ export async function sync(devMode: boolean = false): Promise<void> {
       const debouncedSync = debounce(async () => {
         console.log(chalk.blue('Local changes detected, syncing with server...'));
         await fetchAndWritePrompts();
-      }, 1000);
+        console.log(chalk.green('Local sync complete'));
+      }, 300);
 
       // Watch for local changes
       watcher

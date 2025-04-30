@@ -17,6 +17,7 @@
     "chalk": "^4.1.2",
     "chokidar": "^3.5.3",
     "commander": "^11.1.0",
+    "dotenv": "^16.5.0",
     "inquirer": "^8.2.5",
     "lodash": "^4.17.21",
     "open": "^8.4.2",

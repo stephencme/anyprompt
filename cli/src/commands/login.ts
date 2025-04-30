@@ -5,6 +5,9 @@ import ora from 'ora';
 import { promises as fs } from 'fs';
 import path from 'path';
 import readline from 'readline';
+import dotenv from 'dotenv';
+
+dotenv.config();
 
 const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL || "";
 const SUPABASE_ANON_KEY = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || "";
